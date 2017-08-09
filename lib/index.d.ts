@@ -1,6 +1,5 @@
 /// <reference path="../src/Parser.d.ts" />
 import * as nodes from './Node';
-import { Either } from 'afpl';
 export { Node as Node } from './Node';
 export interface AST {
     [key: string]: nodes.Node;
@@ -21,4 +20,4 @@ export declare const code: (n: nodes.Node) => string;
 export interface Options {
     runtime: string;
 }
-export declare const compile: (src: string, options: Options) => Either<Error, string>;
+export declare const compile: (src: string, options?: Options) => string;
