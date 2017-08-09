@@ -8,6 +8,8 @@
     "clean": "rm -R lib/*",
     "dist": "cd lib && npm publish",
     "build:parser": "./node_modules/.bin/jison -o src/Parser.js src/rcl.y && cp src/Parser.js lib/Parser.js",
+    "build:src": "./node_modules/.bin/tsc -p src",
+    "build": "npm run -s build:parser && npm run -s build:src",
     "test": "./node_modules/.bin/mocha --opts mocha.opts test/parse.ts"
   },
   "author": "Lasana Murray <dev@quenk.com> (http://quenk.com)",
@@ -19,7 +21,7 @@
     "mocha": "^3.3.0",
     "must": "^0.13.4",
     "ts-node": "^3.0.2",
-    "typescript": "^2.3.2"
+    "typescript": "^2.4.2"
   },
   "dependencies": {
     "afpl": "^0.3.0"
