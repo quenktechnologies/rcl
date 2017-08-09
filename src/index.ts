@@ -1,44 +1,173 @@
-#!/usr/bin/env node
-
-import 'source-map-support/register';
-import * as docopt from 'docopt';
-import * as fs from 'fs';
+/// <reference path='Parser.d.ts' />
 import * as os from 'os';
-import Future from 'fluture';
-import { compile } from './Compiler';
-import {parse} from './Parser';
+import * as nodes from './Node';
+import { Either } from 'afpl';
+import Parser = require('./Parser');
 
-//typescript complains if we try to import this
-//the output of jison does not play nicely with our current tsconfig settings.
-const parse = require('./Parser').parse;
+export { Node as Node } from './Node';
 
-const getFileContents = path =>
-    Future.node(done => fs.readFile(path, { encoding: 'utf8' }, done));
+export interface AST {
 
-const writeToStream = stream => contents =>
-    Future.node(done => stream.write(`${contents}${os.EOL}`, 'utf8', done));
+    [key: string]: nodes.Node
 
-const args: string = docopt.docopt(`
+}
 
-JCON.
+export interface Context {
 
-Usage: jcon [options] <file>
+    symbols: SymbolTable;
+    output: string[];
 
-Options:
-  -h --help     Show this screen.
-  --version     Show jcon version.
-  --ast         Output only the Abstract Syntax Tree (AST) in JSON.
-`, { version: require('../package.json').version });
+}
 
-getFileContents(args['<file>'])
-    .map(parse)
-  /*  .map(compile(args))
-    .chain(state =>
-        state
-        .evalState({})
-        .cata(e => Future.reject(e), o => Future.of(o))) */
-/*    .map(pretty) */
-    .chain(writeToStream(process.stdout))
-    .chainRej(writeToStream(process.stderr))
-    .fork(console.error, x => x);
+export interface SymbolTable {
 
+    [key: string]: Variable
+
+}
+
+export class Variable {
+
+    constructor(public id: string) { }
+
+}
+
+export const parse = (str: string, ast: AST = <any>nodes): nodes.File => {
+
+    Parser.parser.yy = { ast };
+    return Parser.parser.parse(str);
+
+}
+
+export const code = (n: nodes.Node): string => {
+
+    if (n instanceof nodes.File) {
+
+        let imports = n.imports.map(code).join(os.EOL);
+        let routes = n.routes.map(code).join(os.EOL);
+
+        return `${imports} ${os.EOL}${os.EOL}` +
+            `export const routes = (app:$$runtime.Application) => (mod:$$runtime.Module) =>` +
+            `{ ${os.EOL} _doNext = $$runtime.doNext(app, mod); ${os.EOL} ` +
+            `${routes} ${os.EOL} }`;
+
+    } else if (n instanceof nodes.MemberImport) {
+
+        let members = n.members.map(code).join(',');
+        let module = code(n.module);
+
+        return `import {${members}} from ${module}`;
+
+    } else if (n instanceof nodes.QualifiedImport) {
+
+        let module = code(n.module);
+        let id = code(n.id);
+
+        return `import * as ${id} from ${module}`;
+
+    } else if (n instanceof nodes.Route) {
+
+        let method = n.method.toLowerCase();
+        let pattern = code(n.pattern);
+        let filters = n.filters.map(code);
+
+        return `eApp.${method}(${pattern}, (req, res, next) => { ${os.EOL}` +
+            `  Promise${os.EOL}` +
+            `  .resolve(new $$runtime.Continuation($$runtime.Request.fromFramework(req)))${os.EOL}` +
+            `  ${filters.join('  ')}` +
+            `  .catch(e=>mod.onError(e))${os.EOL}` +
+            `  .catch(e=>app.onError(e));${os.EOL}` +
+            `})`;
+
+    } else if (n instanceof nodes.Pattern) {
+
+        return `'${n.value}'`;
+
+    } else if (n instanceof nodes.CurriedFilter) {
+
+        let target = code(n.target);
+        let args = (n.args.length > 0) ? n.args.map(code).join(',') : '';
+
+        return `.then(_doNext(${target}, ${args ? '{' + args + '}' : null}))`;
+
+    } else if (n instanceof nodes.RenderFilter) {
+
+        let view = code(n.view);
+
+        return `.then(_doNext(() => ` +
+            ` Promise` +
+            ` .try(() => res.render(${view})) ` +
+            ` .then(() => new End())))${os.EOL} `;
+
+    } else if (n instanceof nodes.MemberIdentifier) {
+
+        return `${code(n.target)}.${code(n.id)} `;
+
+    } else if (n instanceof nodes.List) {
+
+        let members = n.members.map(code).join(',');
+
+        return `[${members}]`;
+
+    } else if (n instanceof nodes.Dict) {
+
+        let properties = n.properties.map(code).join(',');
+
+        return `{ ${properties} } `;
+
+    } else if (n instanceof nodes.KVP) {
+
+        let key = code(n.key);
+        let value = code(n.value);
+
+        return `${key} : ${value} `;
+
+    } else if (n instanceof nodes.StringLiteral) {
+
+        return `'${n.value}'`;
+
+    } else if (n instanceof nodes.BooleanLiteral) {
+
+        return n.value;
+
+    } else if (n instanceof nodes.NumberLiteral) {
+
+        return n.value;
+
+    } else if (n instanceof nodes.Identifier) {
+
+        return n.value;
+
+    } else {
+
+        throw new TypeError(`Unexpected type ${typeof n
+            }, '${n}'!`);
+
+    }
+
+}
+
+export interface Options {
+
+    runtime: string
+
+}
+
+const defaults = { runtime: 'tendril' };
+
+export const compile = (src: string, options: Options): Either<Error, string> => {
+
+    let opts = (<any>Object).assign({}, defaults, options);
+
+    try {
+
+        return Either.right(
+            `import * as $$runtime from '${opts.runtime}'; ${os.EOL} ` +
+            `${code(parse(src))} `);
+
+    } catch (e) {
+
+        return Either.left(e);
+
+    }
+
+}
