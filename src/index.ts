@@ -1,7 +1,6 @@
 /// <reference path='Parser.d.ts' />
 import * as os from 'os';
 import * as nodes from './Node';
-import { Either } from 'afpl';
 import Parser = require('./Parser');
 
 export { Node as Node } from './Node';
@@ -154,20 +153,11 @@ export interface Options {
 
 const defaults = { runtime: 'tendril' };
 
-export const compile = (src: string, options: Options): Either<Error, string> => {
+export const compile = (src: string, options?: Options): string => {
 
     let opts = (<any>Object).assign({}, defaults, options);
 
-    try {
-
-        return Either.right(
-            `import * as $$runtime from '${opts.runtime}'; ${os.EOL} ` +
-            `${code(parse(src))} `);
-
-    } catch (e) {
-
-        return Either.left(e);
-
-    }
+    return `import * as $$runtime from '${opts.runtime}'; ${os.EOL} ` +
+        `${code(parse(src))} `;
 
 }

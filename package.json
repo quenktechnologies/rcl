@@ -22,8 +22,5 @@
     "must": "^0.13.4",
     "ts-node": "^3.0.2",
     "typescript": "^2.4.2"
-  },
-  "dependencies": {
-    "afpl": "^0.3.0"
   }
 }
