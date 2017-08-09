@@ -45,7 +45,8 @@ export const code = (n: nodes.Node): string => {
         let routes = n.routes.map(code).join(os.EOL);
 
         return `${imports} ${os.EOL}${os.EOL}` +
-            `export const routes = (app:$$runtime.Application) => (mod:$$runtime.Module) =>` +
+            `export const routes = (app:$$runtime.Application) => ` +
+            `(mod:$$runtime.Module) => (eApp:any)=>` +
             `{ ${os.EOL} _doNext = $$runtime.doNext(app, mod); ${os.EOL} ` +
             `${routes} ${os.EOL} }`;
 
