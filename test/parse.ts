@@ -45,18 +45,19 @@ tests = {
 
         input: `
 %import refresh,check from "app/middleware"
-%import search,create,update from "app/users"
 %import "app/Users" as Users
 
-GET     /users = refresh | search
+GET     /users = refresh | Users.search
 
-POST    /users = refresh | create
+POST    /users = refresh | Users.create
 
-PUT     /users/:id = refresh | check(perm='admin', v=12) | update
+PUT     /users/:id = refresh | check({perm='admin' v=12}) | Users.update
+
+DELETE /users/:id = Users.delete
 
 # comment
 
-DELETE  /users/:id = refresh | check(prem=['admin', 'remove']) | Users.delete
+DELETE  /users/:id = refresh | check(['admin', 'remove']) | Users.delete
 
 GET / = 'main/index'
         `

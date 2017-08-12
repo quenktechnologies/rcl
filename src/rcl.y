@@ -29,7 +29,7 @@ SingleStringCharacter ([^\'\\\n\r]+)|(\\{EscapeSequence})|{LineContinuation}
 TemplateStringCharacter ([^\`\\\n\r]+)|(\\{EscapeSequence})|{LineContinuation}
 StringLiteral (\"{DoubleStringCharacter}*\")|(\'{SingleStringCharacter}*\')|(\`{TemplateStringCharacter}*\`)
 Text ({DoubleStringCharacter}*)|({SingleStringCharacter}*)
-Path (\/[\w:]+)+|[\/]
+Path (((\.{1,2}\/){1,2})|([/]))([\w-:/.]+)?
 
 /* Lexer flags */
 %options flex
@@ -50,6 +50,10 @@ Path (\/[\w:]+)+|[\/]
 'import'                                                 return 'IMPORT';
 'as'                                                     return 'AS';
 'from'                                                   return 'FROM';
+{NumberLiteral}                                          return 'NUMBER_LITERAL';
+{StringLiteral}                                          return 'STRING_LITERAL';
+{Identifier}                                             return 'IDENTIFIER';
+{Path}                                                   return 'PATH';
 '('                                                      return '(';
 ')'                                                      return ')';
 '['                                                      return '[';
@@ -63,11 +67,7 @@ Path (\/[\w:]+)+|[\/]
 '.'                                                      return '.';
 '{'                                                      return '{';
 '}'                                                      return '}';
-{Path}                                                   return 'PATH';
 '/'                                                      return '/';
-{NumberLiteral}                                          return 'NUMBER_LITERAL';
-{StringLiteral}                                          return 'STRING_LITERAL';
-{Identifier}                                             return 'IDENTIFIER';
 
 <*><<EOF>>                                               return 'EOF';
 
@@ -83,6 +83,9 @@ file
 
           | routes EOF
             {$$ = new yy.ast.File([], $1, @$); return $$;}
+
+          | EOF
+            {$$ = new yy.ast.File([], [], @$); return $$}
           ;
 
 imports
@@ -134,16 +137,16 @@ filters
 
 filter
           : identifier 
-            {$$ = new yy.ast.CurriedFilter($1, [], @$); }
+            {$$ = new yy.ast.ActionFilter($1, [], @$); }
           
           | member_identifier
-            {$$ = new yy.ast.CurriedFilter($1, [], @$); }
+            {$$ = new yy.ast.ActionFilter($1, [], @$); }
 
           | identifier '(' arguments ')'
-            {$$ = new yy.ast.CurriedFilter($1, $3, @$); }
+            {$$ = new yy.ast.ActionFilter($1, $3, @$); }
 
           | member_identifier '(' arguments ')'
-            {$$ = new yy.ast.CurriedFilter($1, $3, @$); }
+            {$$ = new yy.ast.ActionFilter($1, $3, @$); }
 
           | string_literal 
             {$$ = new yy.ast.RenderFilter($1, @$); }
@@ -158,8 +161,8 @@ member_identifier
           ;
 
 arguments
-          : kvp               {$$ = [$1];         }
-          | arguments ',' kvp {$$ = $1.concat($3);} 
+          : value               {$$ = [$1];         }
+          | arguments ',' vaue  {$$ = $1.concat($3);} 
           ;
 
 value

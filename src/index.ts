@@ -44,10 +44,11 @@ export const code = (n: nodes.Node): string => {
         let imports = n.imports.map(code).join(os.EOL);
         let routes = n.routes.map(code).join(os.EOL);
 
-        return `${imports} ${os.EOL}${os.EOL}` +
-            `export const routes = (app:$$runtime.Application) => ` +
-            `(mod:$$runtime.Module) => (eApp:any)=>` +
-            `{ ${os.EOL} _doNext = $$runtime.doNext(app, mod); ${os.EOL} ` +
+        return `${imports} ${os.EOL}` +
+            `${os.EOL}` +
+            `export const routes = (app:tendril.Application) => ` +
+            `(mod:tendril.Module) => (eApp:express.Application)=>` +
+            `{ ${os.EOL} _doNext = doNext(app, mod); ${os.EOL} ` +
             `${routes} ${os.EOL} }`;
 
     } else if (n instanceof nodes.MemberImport) {
@@ -72,7 +73,7 @@ export const code = (n: nodes.Node): string => {
 
         return `eApp.${method}(${pattern}, (req, res, next) => { ${os.EOL}` +
             `  Promise${os.EOL}` +
-            `  .resolve(new $$runtime.Continuation($$runtime.Request.fromFramework(req)))${os.EOL}` +
+            `  .resolve(new tendril.Continuation($$runtime.Request.fromFramework(req)))${os.EOL}` +
             `  ${filters.join('  ')}` +
             `  .catch(e=>mod.onError(e))${os.EOL}` +
             `  .catch(e=>app.onError(e));${os.EOL}` +
@@ -82,7 +83,7 @@ export const code = (n: nodes.Node): string => {
 
         return `'${n.value}'`;
 
-    } else if (n instanceof nodes.CurriedFilter) {
+    } else if (n instanceof nodes.ActionFilter) {
 
         let target = code(n.target);
         let args = (n.args.length > 0) ? n.args.map(code).join(',') : '';

@@ -68,13 +68,13 @@ export class Pattern {
 }
 
 export type Filter
-    = CurriedFilter
+    = ActionFilter
     | RenderFilter
     ;
 
-export class CurriedFilter {
+export class ActionFilter {
 
-    type = 'curried-filter';
+    type = 'action-filter';
 
     constructor(
         public target: Identifier | MemberIdentifier,

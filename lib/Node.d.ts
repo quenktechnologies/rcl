@@ -42,8 +42,8 @@ export declare class Pattern {
     type: string;
     constructor(value: string, location: Location);
 }
-export declare type Filter = CurriedFilter | RenderFilter;
-export declare class CurriedFilter {
+export declare type Filter = ActionFilter | RenderFilter;
+export declare class ActionFilter {
     target: Identifier | MemberIdentifier;
     args: KVP[];
     location: Location;
