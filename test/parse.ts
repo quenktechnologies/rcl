@@ -45,7 +45,8 @@ tests = {
 
         input: `
 %import refresh,check from "app/middleware"
-%import "app/Users" as Users
+%import "app/Users" as Users 
+%import Random from "app/Random"
 
 GET     /users = refresh | Users.search
 
@@ -53,13 +54,15 @@ POST    /users = refresh | Users.create
 
 PUT     /users/:id = refresh | check({perm='admin' v=12}) | Users.update
 
-DELETE /users/:id = Users.delete
+DELETE  /users/:id = Users.delete
+ 
+GET     /random = Random.get(1,2,3)
 
 # comment
 
 DELETE  /users/:id = refresh | check(['admin', 'remove']) | Users.delete
 
-GET / = 'main/index'
+GET / = 'main/index' {name = 'Nikosi'}
         `
 
     }

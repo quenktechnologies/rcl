@@ -4,20 +4,15 @@ export { Node as Node } from './Node';
 export interface AST {
     [key: string]: nodes.Node;
 }
-export interface Context {
-    symbols: SymbolTable;
-    output: string[];
-}
-export interface SymbolTable {
-    [key: string]: Variable;
-}
-export declare class Variable {
-    id: string;
-    constructor(id: string);
+export declare class Context {
+    symbols: {
+        [key: string]: string;
+    };
+    add(id: string): this;
+    has(id: string): boolean;
+    get(id: string): string;
+    toString(): string;
 }
 export declare const parse: (str: string, ast?: AST) => nodes.File;
-export declare const code: (n: nodes.Node) => string;
-export interface Options {
-    runtime: string;
-}
-export declare const compile: (src: string, options?: Options) => string;
+export declare const code: (n: nodes.Node, ctx: Context) => string;
+export declare const compile: (src: string) => string;

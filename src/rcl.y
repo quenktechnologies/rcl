@@ -113,8 +113,12 @@ routes
           ;
 
 route
-          : method pattern '=' filters
-            {$$ = new yy.ast.Route($1, $2, $4, @$);    } 
+          : method pattern '=' filters '|' action 
+            {$$ = new yy.ast.Route($1, $2, $4, $6, @$);    } 
+
+          | method pattern '=' action 
+            {$$ = new yy.ast.Route($1, $2, [], $4, @$);    } 
+
           ;
 
 method
@@ -137,19 +141,25 @@ filters
 
 filter
           : identifier 
-            {$$ = new yy.ast.ActionFilter($1, [], @$); }
+            {$$ = new yy.ast.Filter($1, [], @$); }
           
-          | member_identifier
-            {$$ = new yy.ast.ActionFilter($1, [], @$); }
-
           | identifier '(' arguments ')'
-            {$$ = new yy.ast.ActionFilter($1, $3, @$); }
+            {$$ = new yy.ast.Filter($1, $3, @$); }
+          ;
 
-          | member_identifier '(' arguments ')'
-            {$$ = new yy.ast.ActionFilter($1, $3, @$); }
+action 
+          : identifier '.' identifier
+            {$$ = new yy.ast.ControllerAction($1, $3, [], @$); }
 
-          | string_literal 
-            {$$ = new yy.ast.RenderFilter($1, @$); }
+          | identifier '.' identifier '(' arguments? ')'
+            {$$ = new yy.ast.ControllerAction($1, $3, $5||[], @$); }
+
+          | string_literal dict
+            {$$ = new yy.ast.ViewAction($1, $2, @$); }
+
+          | string_literal
+            {$$ = new yy.ast.ViewAction($1, null, @$); }
+
           ;
 
 member_identifier
@@ -162,7 +172,7 @@ member_identifier
 
 arguments
           : value               {$$ = [$1];         }
-          | arguments ',' vaue  {$$ = $1.concat($3);} 
+          | arguments ',' value  {$$ = $1.concat($3);} 
           ;
 
 value

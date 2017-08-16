@@ -31,9 +31,10 @@ export declare class Route {
     method: Method;
     pattern: Pattern;
     filters: Filter[];
+    action: Action;
     location: Location;
     type: string;
-    constructor(method: Method, pattern: Pattern, filters: Filter[], location: Location);
+    constructor(method: Method, pattern: Pattern, filters: Filter[], action: Action, location: Location);
 }
 export declare type Method = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
 export declare class Pattern {
@@ -42,19 +43,28 @@ export declare class Pattern {
     type: string;
     constructor(value: string, location: Location);
 }
-export declare type Filter = ActionFilter | RenderFilter;
-export declare class ActionFilter {
+export declare class Filter {
     target: Identifier | MemberIdentifier;
-    args: KVP[];
+    args: Value[];
     location: Location;
     type: string;
-    constructor(target: Identifier | MemberIdentifier, args: KVP[], location: Location);
+    constructor(target: Identifier | MemberIdentifier, args: Value[], location: Location);
 }
-export declare class RenderFilter {
-    view: StringLiteral;
+export declare type Action = ControllerAction | ViewAction;
+export declare class ControllerAction {
+    target: Identifier;
+    member: Identifier;
+    args: Value[];
     location: Location;
     type: string;
-    constructor(view: StringLiteral, location: Location);
+    constructor(target: Identifier, member: Identifier, args: Value[], location: Location);
+}
+export declare class ViewAction {
+    view: StringLiteral;
+    context: Dict | null;
+    location: Location;
+    type: string;
+    constructor(view: StringLiteral, context: Dict | null, location: Location);
 }
 export declare class MemberIdentifier {
     target: Identifier | MemberIdentifier;

@@ -11,24 +11,42 @@ export interface AST {
 
 }
 
-export interface Context {
+export class Context {
 
-    symbols: SymbolTable;
-    output: string[];
+    symbols: { [key: string]: string } = {};
+
+    add(id: string): this {
+
+        this.symbols[id] = `_${id.toLowerCase()}`;
+        return this;
+
+    }
+
+    has(id: string): boolean {
+
+        return (this.symbols[id]) ? true : false;
+
+    }
+
+    get(id: string): string {
+
+        if (this.symbols[id])
+            return this.symbols[id];
+
+        throw new Error(`No matching symbols for '${id}'!`);
+
+    }
+
+    toString(): string {
+
+        return Object
+            .keys(this.symbols)
+            .map(s => `let ${this.symbols[s]} = new ${s}();`).join(os.EOL);
+
+    }
 
 }
 
-export interface SymbolTable {
-
-    [key: string]: Variable
-
-}
-
-export class Variable {
-
-    constructor(public id: string) { }
-
-}
 
 export const parse = (str: string, ast: AST = <any>nodes): nodes.File => {
 
@@ -37,88 +55,98 @@ export const parse = (str: string, ast: AST = <any>nodes): nodes.File => {
 
 }
 
-export const code = (n: nodes.Node): string => {
+export const code = (n: nodes.Node, ctx: Context): string => {
 
     if (n instanceof nodes.File) {
 
-        let imports = n.imports.map(code).join(os.EOL);
-        let routes = n.routes.map(code).join(os.EOL);
+        let imports = n.imports.map(i => code(i, ctx)).join(os.EOL);
+        let routes = n.routes.map(r => code(r, ctx)).join(os.EOL);
 
-        return `${imports} ${os.EOL}` +
-            `${os.EOL}` +
-            `export const routes = (app:tendril.Application) => ` +
-            `(mod:tendril.Module) => (eApp:express.Application)=>` +
-            `{ ${os.EOL} _doNext = doNext(app, mod); ${os.EOL} ` +
-            `${routes} ${os.EOL} }`;
+        return `${imports} ${os.EOL}${os.EOL}` +
+            `export const routes = <C>(_app:express.Application,${os.EOL}` +
+            `_renderer:tendril.app.Renderer, ${os.EOL}` +
+            `_mod:tendril.app.Module<C>) => {${os.EOL}` +
+            `  ${ctx} ${os.EOL} ${routes} ${os.EOL} }`;
 
     } else if (n instanceof nodes.MemberImport) {
 
-        let members = n.members.map(code).join(',');
-        let module = code(n.module);
+        let members = n.members.map(m => code(m, ctx)).join(',');
+        let module = code(n.module, ctx);
 
         return `import {${members}} from ${module}`;
 
     } else if (n instanceof nodes.QualifiedImport) {
 
-        let module = code(n.module);
-        let id = code(n.id);
+        let module = code(n.module, ctx);
+        let id = code(n.id, ctx);
 
         return `import * as ${id} from ${module}`;
 
     } else if (n instanceof nodes.Route) {
 
         let method = n.method.toLowerCase();
-        let pattern = code(n.pattern);
-        let filters = n.filters.map(code);
+        let pattern = code(n.pattern, ctx);
+        let action = code(n.action, ctx);
+        let filters = n.filters.map(x => code(x, ctx)).join(',');
 
-        return `eApp.${method}(${pattern}, (req, res, next) => { ${os.EOL}` +
-            `  Promise${os.EOL}` +
-            `  .resolve(new tendril.Continuation($$runtime.Request.fromFramework(req)))${os.EOL}` +
-            `  ${filters.join('  ')}` +
-            `  .catch(e=>mod.onError(e))${os.EOL}` +
-            `  .catch(e=>app.onError(e));${os.EOL}` +
+        return `_app.${method}(${pattern},${filters ? filters + ',' : ''}(_req, _res) => {` +
+            `${os.EOL}${os.EOL} ` +
+            `  Bluebird${os.EOL} ` +
+            `   .try(()=>${action})` +
+            `   .catch(e => _mod.onError(e, _req, _res))${os.EOL} ` +
             `})`;
 
     } else if (n instanceof nodes.Pattern) {
 
         return `'${n.value}'`;
 
-    } else if (n instanceof nodes.ActionFilter) {
+    } else if (n instanceof nodes.Filter) {
 
-        let target = code(n.target);
-        let args = (n.args.length > 0) ? n.args.map(code).join(',') : '';
+        let target = code(n.target, ctx);
+        let args = (n.args.length > 0) ? n.args.map(x => code(x, ctx)).join(',') : '';
 
-        return `.then(_doNext(${target}, ${args ? '{' + args + '}' : null}))`;
+        return `${target}${args ? '(' + args + ')' : ''}`;
 
-    } else if (n instanceof nodes.RenderFilter) {
+    } else if (n instanceof nodes.ControllerAction) {
 
-        let view = code(n.view);
+        let target = code(n.target, ctx);
+        let member = code(n.member, ctx);
 
-        return `.then(_doNext(() => ` +
-            ` Promise` +
-            ` .try(() => res.render(${view})) ` +
-            ` .then(() => new End())))${os.EOL} `;
+        let args = (n.args.length > 0) ?
+            n.args.map(x => code(x, ctx)).concat(['_req, _res']).join(',') : '_req, _res';
+
+        if (ctx.has(target))
+            return `${ctx.get(target)}.${member}(${args})`;
+        else
+            return `${ctx.add(target).get(target)}.${member}(${args})`;
+
+    } else if (n instanceof nodes.ViewAction) {
+
+        let view = code(n.view, ctx);
+        let c = (n.context) ? code(n.context, ctx) : '';
+
+        return ` _renderer.render(${view}${c ? ',' + c : ''})`
 
     } else if (n instanceof nodes.MemberIdentifier) {
 
-        return `${code(n.target)}.${code(n.id)} `;
+        return `${code(n.target, ctx)}.${code(n.id, ctx)} `;
 
     } else if (n instanceof nodes.List) {
 
-        let members = n.members.map(code).join(',');
+        let members = n.members.map(x => code(x, ctx)).join(',');
 
         return `[${members}]`;
 
     } else if (n instanceof nodes.Dict) {
 
-        let properties = n.properties.map(code).join(',');
+        let properties = n.properties.map(x => code(x, ctx)).join(',');
 
         return `{ ${properties} } `;
 
     } else if (n instanceof nodes.KVP) {
 
-        let key = code(n.key);
-        let value = code(n.value);
+        let key = code(n.key, ctx);
+        let value = code(n.value, ctx);
 
         return `${key} : ${value} `;
 
@@ -140,26 +168,14 @@ export const code = (n: nodes.Node): string => {
 
     } else {
 
-        throw new TypeError(`Unexpected type ${typeof n
-            }, '${n}'!`);
+        throw new TypeError(`Unexpected type ${typeof n}, '${n}'!`);
 
     }
 
 }
 
-export interface Options {
+export const compile = (src: string): string => {
 
-    runtime: string
-
-}
-
-const defaults = { runtime: 'tendril' };
-
-export const compile = (src: string, options?: Options): string => {
-
-    let opts = (<any>Object).assign({}, defaults, options);
-
-    return `import * as $$runtime from '${opts.runtime}'; ${os.EOL} ` +
-        `${code(parse(src))} `;
+    return `${code(parse(src), new Context())} `;
 
 }

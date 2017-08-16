@@ -47,6 +47,7 @@ export class Route {
         public method: Method,
         public pattern: Pattern,
         public filters: Filter[],
+        public action: Action,
         public location: Location) {
 
     }
@@ -67,27 +68,42 @@ export class Pattern {
 
 }
 
-export type Filter
-    = ActionFilter
-    | RenderFilter
-    ;
+export class Filter {
 
-export class ActionFilter {
-
-    type = 'action-filter';
+    type = 'filter';
 
     constructor(
         public target: Identifier | MemberIdentifier,
-        public args: KVP[],
+        public args: Value[],
         public location: Location) { }
 
 }
 
-export class RenderFilter {
+export type Action
+    = ControllerAction
+    | ViewAction
+    ;
 
-    type = 'render-filter';
+export class ControllerAction {
 
-    constructor(public view: StringLiteral, public location: Location) { }
+    type = 'controller-action';
+
+    constructor(
+        public target: Identifier,
+        public member: Identifier,
+        public args: Value[],
+        public location: Location) { }
+
+}
+
+export class ViewAction {
+
+    type = 'view-action';
+
+    constructor(
+        public view: StringLiteral,
+        public context: Dict | null,
+        public location: Location) { }
 
 }
 
@@ -105,7 +121,8 @@ export type Value
     | Dict
     | StringLiteral
     | NumberLiteral
-    | BooleanLiteral;
+    | BooleanLiteral
+    ;
 
 
 export class List {
