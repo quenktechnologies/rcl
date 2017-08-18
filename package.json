@@ -1,6 +1,6 @@
 {
   "name": "@quenk/rcl",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Route Configuration Language",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
