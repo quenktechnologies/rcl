@@ -130,7 +130,7 @@ export const code = (n: nodes.Node, ctx: Context): string => {
         let view = code(n.view, ctx);
         let c = (n.context) ? code(n.context, ctx) : '';
 
-        return ` _mod.render(${view}${c ? ',' + c : ''}) `
+        return ` tendril.app.actions.render(${view}${c ? ',' + c : ''}) `
 
     } else if (n instanceof nodes.MemberIdentifier) {
 
