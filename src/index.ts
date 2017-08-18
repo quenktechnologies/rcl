@@ -33,7 +33,7 @@ export class Context {
         if (this.symbols[id])
             return this.symbols[id];
 
-        throw new Error(`No matching symbols for '${id}'!`);
+        throw new Error(`No matching symbols for '${id}'! Symbols: ${JSON.stringify(this.symbols)}`);
 
     }
 
@@ -46,7 +46,6 @@ export class Context {
     }
 
 }
-
 
 export const parse = (str: string, ast: AST = <any>nodes): nodes.File => {
 
@@ -63,8 +62,7 @@ export const code = (n: nodes.Node, ctx: Context): string => {
         let routes = n.routes.map(r => code(r, ctx)).join(os.EOL);
 
         return `${imports} ${os.EOL}${os.EOL}` +
-            `export const routes = <C>(_app:express.Application,${os.EOL}` +
-            `_renderer:tendril.app.Renderer, ${os.EOL}` +
+            `export const routes = <C>(_app:express.Application, ` +
             `_mod:tendril.app.Module<C>) => {${os.EOL}` +
             `  ${ctx} ${os.EOL} ${routes} ${os.EOL} }`;
 
@@ -89,11 +87,11 @@ export const code = (n: nodes.Node, ctx: Context): string => {
         let action = code(n.action, ctx);
         let filters = n.filters.map(x => code(x, ctx)).join(',');
 
-        return `_app.${method}(${pattern},${filters ? filters + ',' : ''}(_req, _res) => {` +
+        return `_app.${method}(${pattern}, (_req, _res) => {` +
             `${os.EOL}${os.EOL} ` +
-            `  Bluebird${os.EOL} ` +
-            `   .try(()=>${action})` +
-            `   .catch(e => _mod.onError(e, _req, _res))${os.EOL} ` +
+            `  let _ctx = new tendril.app.actions.Context` +
+            ` (_req, _res, [${filters}], ${action}, _mod);${os.EOL} ` +
+            `  _ctx.next(); ${os.EOL} ` +
             `})`;
 
     } else if (n instanceof nodes.Pattern) {
@@ -103,29 +101,36 @@ export const code = (n: nodes.Node, ctx: Context): string => {
     } else if (n instanceof nodes.Filter) {
 
         let target = code(n.target, ctx);
-        let args = (n.args.length > 0) ? n.args.map(x => code(x, ctx)).join(',') : '';
+        let args;
 
-        return `${target}${args ? '(' + args + ')' : ''}`;
+        if (n.args.length > 0)
+            args = ['r'].concat(n.args.map(c => code(c, ctx))).join(',');
+        else
+            args = 'r';
+
+        return `r=>${target}(${args}) `;
 
     } else if (n instanceof nodes.ControllerAction) {
 
         let target = code(n.target, ctx);
         let member = code(n.member, ctx);
+        let args;
 
-        let args = (n.args.length > 0) ?
-            n.args.map(x => code(x, ctx)).concat(['_req, _res']).join(',') : '_req, _res';
-
-        if (ctx.has(target))
-            return `${ctx.get(target)}.${member}(${args})`;
+        if (n.args.length > 0)
+            args = ['r'].concat(n.args.map(c => code(c, ctx))).join(',');
         else
-            return `${ctx.add(target).get(target)}.${member}(${args})`;
+            args = 'r';
+
+        return (ctx.has(target)) ?
+            `r=>${ctx.get(target)}.${member} (${args})` :
+            `r=>${ctx.add(target).get(target)}.${member} (${args})`;
 
     } else if (n instanceof nodes.ViewAction) {
 
         let view = code(n.view, ctx);
         let c = (n.context) ? code(n.context, ctx) : '';
 
-        return ` _renderer.render(${view}${c ? ',' + c : ''})`
+        return ` _mod.render(${view}${c ? ',' + c : ''}) `
 
     } else if (n instanceof nodes.MemberIdentifier) {
 
@@ -168,7 +173,8 @@ export const code = (n: nodes.Node, ctx: Context): string => {
 
     } else {
 
-        throw new TypeError(`Unexpected type ${typeof n}, '${n}'!`);
+        throw new TypeError(`Unexpected type ${typeof n
+            }, '${n}'!`);
 
     }
 
