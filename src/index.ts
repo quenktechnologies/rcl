@@ -134,7 +134,7 @@ export const code = (n: nodes.Node, ctx: Context): string => {
 
     } else if (n instanceof nodes.MemberIdentifier) {
 
-        return `${code(n.target, ctx)}.${code(n.id, ctx)} `;
+        return `${code(n.target, ctx)}.${code(n.id, ctx)}`;
 
     } else if (n instanceof nodes.List) {
 

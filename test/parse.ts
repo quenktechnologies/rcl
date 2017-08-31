@@ -44,9 +44,10 @@ tests = {
     'should work': {
 
         input: `
-%import refresh,check from "app/middleware"
+%import refresh,check,random from "app/middleware"
 %import "app/Users" as Users 
 %import Random from "app/Random"
+%import args from "arguments"
 
 GET     /users = refresh | Users.search
 
@@ -54,7 +55,7 @@ POST    /users = refresh | Users.create
 
 PUT     /users/:id = refresh | check({perm='admin' v=12}) | Users.update
 
-DELETE  /users/:id = Users.delete
+DELETE  /users/:id = random(args, process.env.value) | Users.delete
  
 GET     /random = Random.get(1,2,3)
 

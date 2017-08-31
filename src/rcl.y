@@ -171,12 +171,25 @@ member_identifier
           ;
 
 arguments
-          : value               {$$ = [$1];         }
+          : value                {$$ = [$1];         }
           | arguments ',' value  {$$ = $1.concat($3);} 
           ;
 
 value
-          : (list|dict|string_literal|number_literal|boolean_literal)
+          : list 
+            {$$ =$1;}
+          | dict
+            {$$ =$1;}
+          | string_literal
+            {$$ =$1;}
+          | number_literal
+            {$$ =$1;}
+          | boolean_literal
+            {$$ =$1;}
+          | member_identifier
+            {$$ =$1;}
+          | identifier
+            {$$ =$1;}
           ;
 
 list      
