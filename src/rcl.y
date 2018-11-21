@@ -1,7 +1,6 @@
 %lex
 
 /* Definitions */
-DecimalDigit [0-9]
 DecimalDigits [0-9]+
 NonZeroDigit [1-9]
 OctalDigit [0-7]
@@ -15,7 +14,6 @@ HexIntegerLiteral [0][xX]{HexDigit}+
 DecimalLiteral ([-]?{DecimalIntegerLiteral}\.{DecimalDigits}*{ExponentPart}?)|(\.{DecimalDigits}{ExponentPart}?)|({DecimalIntegerLiteral}{ExponentPart}?)
 NumberLiteral {DecimalLiteral}|{HexIntegerLiteral}|{OctalIntegerLiteral}
 Identifier [a-zA-Z$_][a-zA-Z$_0-9-]*
-DotIdentifier [a-zA-Z$_][a-zA-Z$_0-9.-]*
 LineContinuation \\(\r\n|\r|\n)
 OctalEscapeSequence (?:[1-7][0-7]{0,2}|[0-7]{2,3})
 HexEscapeSequence [x]{HexDigit}{2}
@@ -25,20 +23,20 @@ NonEscapeCharacter [^\'\"\\bfnrtv0-9xu]
 CharacterEscapeSequence {SingleEscapeCharacter}|{NonEscapeCharacter}
 EscapeSequence {CharacterEscapeSequence}|{OctalEscapeSequence}|{HexEscapeSequence}|{UnicodeEscapeSequence}
 DoubleStringCharacter ([^\"\\\n\r]+)|(\\{EscapeSequence})|{LineContinuation}
-SingleStringCharacter ([^\'\\\n\r]+)|(\\{EscapeSequence})|{LineContinuation}
-TemplateStringCharacter ([^\`\\\n\r]+)|(\\{EscapeSequence})|{LineContinuation}
-StringLiteral (\"{DoubleStringCharacter}*\")|(\'{SingleStringCharacter}*\')|(\`{TemplateStringCharacter}*\`)
-Text ({DoubleStringCharacter}*)|({SingleStringCharacter}*)
+StringLiteral (\"{DoubleStringCharacter}*\")
 Path (((\.{1,2}\/){1,2})|([/]))([\w-:/.]+)?
+Characters [^\n]*
 
 /* Lexer flags */
 %options flex
+%x COMMENT
 %%
 
 /* Lexer rules */
 
 \s+                                                      return;
-'#'.*                                                    return;
+'--'                  this.begin('COMMENT');             return 'COMMENT';
+<COMMENT>{Characters} this.popState();                   return 'CHARACTERS';
 'true'                                                   return 'TRUE';
 'false'                                                  return 'FALSE';
 'GET'                                                    return 'GET';
@@ -50,10 +48,12 @@ Path (((\.{1,2}\/){1,2})|([/]))([\w-:/.]+)?
 'import'                                                 return 'IMPORT';
 'as'                                                     return 'AS';
 'from'                                                   return 'FROM';
+'include'                                                return 'INCLUDE';
 {NumberLiteral}                                          return 'NUMBER_LITERAL';
 {StringLiteral}                                          return 'STRING_LITERAL';
 {Identifier}                                             return 'IDENTIFIER';
 {Path}                                                   return 'PATH';
+'${'                                                     return '${';
 '('                                                      return '(';
 ')'                                                      return ')';
 '['                                                      return '[';
@@ -68,7 +68,6 @@ Path (((\.{1,2}\/){1,2})|([/]))([\w-:/.]+)?
 '{'                                                      return '{';
 '}'                                                      return '}';
 '/'                                                      return '/';
-
 <*><<EOF>>                                               return 'EOF';
 
 /lex
@@ -78,14 +77,42 @@ Path (((\.{1,2}\/){1,2})|([/]))([\w-:/.]+)?
 %%
 
 file
-          : imports routes EOF
-            {$$ = new yy.ast.File($1, $2, @$); return $$;}
+          : includes imports routes EOF
+            {$$ = new yy.ast.File($1, $2, $3, @$); return $$;}
+
+          | includes imports EOF
+            {$$ = new yy.ast.File($1, $2, [], @$); return $$;}
+
+          | includes routes EOF
+            {$$ = new yy.ast.File($1, [], $3, @$); return $$;}
+
+          | includes EOF
+            {$$ = new yy.ast.File($1, [], [], @$); return $$;}
+
+          | imports routes EOF
+            {$$ = new yy.ast.File([], $1, $2, @$); return $$;}
+
+          | imports EOF
+            {$$ = new yy.ast.File([], $1, [], @$); return $$;}
 
           | routes EOF
-            {$$ = new yy.ast.File([], $1, @$); return $$;}
+            {$$ = new yy.ast.File([], [], $1, @$); return $$;}
 
           | EOF
-            {$$ = new yy.ast.File([], [], @$); return $$}
+            {$$ = new yy.ast.File([], [], @$); return $$;}
+          ;
+
+includes
+          : include
+            {$$ = [$1];}
+
+          | includes include
+            {$$ = $1.concat($2);}
+          ;
+
+include
+          : INCLUDE string_literal
+            {$$ = new yy.ast.Include($2, @$);}
           ;
 
 imports
@@ -95,30 +122,45 @@ imports
 
 import
           : '%' IMPORT member_list FROM string_literal
-            {$$ = new yy.ast.MemberImport($3, $5, @$);        }
+            {$$ = new yy.ast.MemberImport($3, $5, @$);}
 
           | '%' IMPORT string_literal AS identifier
-            {$$ = new yy.ast.QualifiedImport($3, $5, @$); }
+            {$$ = new yy.ast.QualifiedImport($3, $5, @$);}
           ;
 
 member_list
-
           : identifier                 {$$ =[$1];           }
           | member_list ',' identifier {$$ = $1.concat($3); } 
           ;
 
 routes
-          : route              {$$ = [$1];         }
-          | routes route       {$$ = $1.concat($2);}
+          : comment
+            {$$ = [$1];}
+
+          | route 
+            {$$ = [$1];}
+
+          | routes comment
+            {$$ = $1.concat($2);}
+
+          | routes route
+            {$$ = $1.concat($2);}
+          ;
+
+comment
+          : COMMENT CHARACTERS
+            {$$ = new yy.ast.Comment($2, @$);}
           ;
 
 route
-          : method pattern '=' filters '|' action 
-            {$$ = new yy.ast.Route($1, $2, $4, $6, @$);    } 
+          : method pattern filters view
+            {$$ = new yy.ast.Route($1, $2, $3, $4, @$);} 
 
-          | method pattern '=' action 
-            {$$ = new yy.ast.Route($1, $2, [], $4, @$);    } 
+          | method pattern filters 
+            {$$ = new yy.ast.Route($1, $2, $3, null, @$);} 
 
+          | method pattern view
+            {$$ = new yy.ast.Route($1, $2, [], $3, @$);} 
           ;
 
 method
@@ -133,41 +175,48 @@ pattern
 
 filters
           : filter
-            {$$ = [$1];  }
+            {$$ = [$1];}
 
-          | filters '|' filter
-            {$$ = $1.concat($3); }
+          | filters filter
+            {$$ = $1.concat($2);}
           ;
 
 filter
-          : identifier 
-            {$$ = new yy.ast.Filter($1, [], @$); }
+
+          : identifier '(' arguments ')'
+            {$$ = new yy.ast.Filter($1, $3, true, @$); }
+
+          | identifier '(' ')' 
+            {$$ = new yy.ast.Filter($1, [], true, @$); }
+
+          | identifier 
+            {$$ = new yy.ast.Filter($1, [], false, @$); }
           
-          | identifier '(' arguments ')'
-            {$$ = new yy.ast.Filter($1, $3, @$); }
+          | qualified_identifier '(' arguments ')'
+            {$$ = new yy.ast.Filter($1, $3, true, @$); }
+
+          | qualified_identifier '(' ')'
+            {$$ = new yy.ast.Filter($1, [], true, @$); }
+
+          | qualified_identifier 
+            {$$ = new yy.ast.Filter($1, [], false, @$); }
           ;
 
-action 
-          : identifier '.' identifier
-            {$$ = new yy.ast.ControllerAction($1, $3, [], @$); }
-
-          | identifier '.' identifier '(' arguments? ')'
-            {$$ = new yy.ast.ControllerAction($1, $3, $5||[], @$); }
-
-          | string_literal dict
-            {$$ = new yy.ast.ViewAction($1, $2, @$); }
+view 
+          : string_literal dict
+            {$$ = new yy.ast.View($1, $2, @$); }
 
           | string_literal
-            {$$ = new yy.ast.ViewAction($1, null, @$); }
-
+            {$$ = new yy.ast.View($1, {}, @$); }
           ;
 
-member_identifier
-          : identifier '.' identifier
-            {$$ = new yy.ast.MemberIdentifier($1, $3, @$);}
 
-          | member_identifier '.' identifier
-            {$$ = new yy.ast.MemberIdentifier($1, $3, @$);}
+path
+          : identifier '.' identifier
+            {$$ = [$1]; }
+
+          | path '.' identifier
+            {$$ = $1.concat($3);}
           ;
 
 arguments
@@ -176,20 +225,21 @@ arguments
           ;
 
 value
-          : list 
-            {$$ =$1;}
-          | dict
-            {$$ =$1;}
-          | string_literal
-            {$$ =$1;}
-          | number_literal
-            {$$ =$1;}
-          | boolean_literal
-            {$$ =$1;}
-          | member_identifier
-            {$$ =$1;}
-          | identifier
-            {$$ =$1;}
+          : list {$$ = $1;}
+
+          | dict {$$ = $1;}
+
+          | string_literal {$$ = $1;}
+
+          | number_literal {$$ = $1;}
+
+          | boolean_literal {$$ = $1;}
+
+          | envvar {$$ = $1;}
+
+          | qualified_identifier {$$ = $1;}
+
+          | identifier {$$ = $1;}
           ;
 
 list      
@@ -209,23 +259,23 @@ dict
           : '{' '}'
             {$$ = new yy.ast.Dict([], @$); }
 
-          | '{' kvp+ '}'
+          | '{' pairs '}'
             {$$ = new yy.ast.Dict($2, @$); }
           ;
 
-kvps
-          : kvp         {$$ = [$1];         }
-          | kvps kvp    {$$ = $1.concat($2);}
+pairs
+          : pair         {$$ = [$1];         }
+          | pairs pair   {$$ = $1.concat($2);}
           ;
 
-kvp
+pair
           : identifier '=' value
-            {$$ = new yy.ast.KVP($1, $3, @$);}
+            {$$ = new yy.ast.Pair($1, $3, @$);}
           ;
 
 string_literal
           : STRING_LITERAL 
-          {$$ = new yy.ast.StringLiteral($1.slice(1, -1), @$); }
+            {$$ = new yy.ast.StringLiteral($1.slice(1, -1), @$); }
           ;
 
 boolean_literal
@@ -239,6 +289,16 @@ boolean_literal
 number_literal
           : NUMBER_LITERAL
             {$$ = new yy.ast.NumberLiteral(parseFloat($1), @$); }
+          ;
+
+envvar
+          : '${' identifier '}'
+             {$$ = new yy.ast.EnvVar($2, @$);  }
+          ;
+
+qualified_identifier
+          : path 
+            {$$ = new yy.ast.QualifiedIdentifier($1, @$);}
           ;
 
 identifier

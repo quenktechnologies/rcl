@@ -1,4 +1,4 @@
-import { File } from './Node';
+import { File } from './ast';
 
 export interface Parser {
 
