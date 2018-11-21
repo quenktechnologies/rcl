@@ -1,8 +1,7 @@
 import * as must from 'must';
 import * as fs from 'fs';
-import { parse, compile } from '../src';
+import { parse } from '../src';
 
-var input = null;
 var tests = null;
 
 function json(tree: any): string {
@@ -20,18 +19,13 @@ function makeTest(test, index) {
     var file = index.replace(/\s/g, '-');
 
     if (process.env.GENERATE) {
-        fs.writeFileSync(`./test/expectations/${file}.json`, json(parse(test.input)));
-        fs.writeFileSync(`./test/expectations/${file}.ts`, compile(test.input));
+        fs.writeFileSync(`./test/expectations/${file}.json`, json(parse(test)));
         return;
     }
 
     if (!test.skip) {
 
-        compare(json(parse(test.input)), fs.readFileSync(`./test/expectations/${file}.json`, {
-            encoding: 'utf8'
-        }));
-
-        compare(compile(test.input), fs.readFileSync(`./test/expectations/${file}.ts`, {
+        compare(json(parse(test)), fs.readFileSync(`./test/expectations/${file}.json`, {
             encoding: 'utf8'
         }));
 
@@ -41,42 +35,42 @@ function makeTest(test, index) {
 
 tests = {
 
-    'should work': {
+    'should allow imports': '%import refresh,check,random from "app/middleware"',
+    'should allow qualified imports': '%import "app/Users" as users',
+    'should allow actions': 'GET / action',
+    'should allow filters and actions':
+        'PUT /users/:id refresh check({perm="admin" v=12}) update',
+    'should allow views': 'GET / "some/view"',
+    'should allow filters and views': 'GET /random refresh "main/random" {pool = [1,2,3]}',
+    'should allow comments': '-- This is a comment!',
+    'should allow envvars': 'GET / action(${VALUE})',
+    'should allow includes': 'include "path/to/include"',
+    'should all together now': `
 
-        input: `
+include "./other/file/conf" 
+
 %import refresh,check,random from "app/middleware"
-%import "app/Users" as Users 
-%import Random from "app/Random"
+%import "app/Users" as users 
 %import args from "arguments"
 
-GET     /users = refresh | Users.search
+GET     /users refresh users.search
 
-POST    /users = refresh | Users.create
+POST    /users refresh users.create
 
-PUT     /users/:id = refresh | check({perm='admin' v=12}) | Users.update
+PUT     /users/:id refresh check({perm="admin" v=12}) users.update
 
-DELETE  /users/:id = random(args, process.env.value) | Users.delete
+DELETE  /users/:id random(args, process.env.value) users.delete
  
-GET     /random = Random.get(1,2,3)
+GET     /random refresh "main/random" {pool = [1,2,3]}
 
-# comment
+-- This is a comment!
 
-DELETE  /users/:id = refresh | check(['admin', 'remove']) | Users.delete
+DELETE  /users/:id refresh check(["admin", "remove"]) users.delete
 
-GET / = 'main/index' {name = 'Nikosi'}
-        `
-
-    }
-
+GET / "main/index" {name = "Nikosi"}`
 };
 
 describe('Parser', function() {
-
-    beforeEach(function() {
-
-        input = null;
-
-    });
 
     describe('parse()', function() {
 
