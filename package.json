@@ -4,6 +4,7 @@
   "description": "Route Configuration Language",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": ["lib"],
   "scripts": {
     "test": "./node_modules/.bin/mocha --opts mocha.opts test/parse.ts"
   },
