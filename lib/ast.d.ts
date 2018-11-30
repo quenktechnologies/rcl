@@ -35,10 +35,10 @@ export interface Node {
 export declare class File implements Node {
     includes: Include[];
     imports: Import[];
-    routes: Route[] | Comment[];
+    routes: Routes[];
     location: Location;
     type: string;
-    constructor(includes: Include[], imports: Import[], routes: Route[] | Comment[], location: Location);
+    constructor(includes: Include[], imports: Import[], routes: Routes[], location: Location);
 }
 /**
  * Include node.
@@ -73,6 +73,10 @@ export declare class QualifiedImport implements Node {
     type: string;
     constructor(module: StringLiteral, id: UnqualifiedIdentifier, location: Location);
 }
+/**
+ * Routes type.
+ */
+export declare type Routes = Comment | Route;
 /**
  * Comment node
  */

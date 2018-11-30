@@ -53,7 +53,7 @@ export class File implements Node {
     constructor(
         public includes: Include[],
         public imports: Import[],
-      public routes: Route[] | Comment[],
+        public routes: Routes[],
         public location: Location) { }
 
 }
@@ -106,6 +106,14 @@ export class QualifiedImport implements Node {
         public location: Location) { }
 
 }
+
+/**
+ * Routes type.
+ */
+export type Routes 
+  = Comment
+  | Route
+  ;
 
 /**
  * Comment node
