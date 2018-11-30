@@ -4,7 +4,9 @@
   "description": "Route Configuration Language",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "test": "./node_modules/.bin/mocha --opts mocha.opts test/parse.ts"
   },
@@ -18,5 +20,8 @@
     "must": "^0.13.4",
     "ts-node": "^3.0.2",
     "typescript": "^2.9.2"
+  },
+  "dependencies": {
+    "@quenk/noni": "^1.4.0"
   }
 }
