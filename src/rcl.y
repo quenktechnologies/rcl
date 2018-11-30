@@ -124,13 +124,13 @@ import
           : '%' IMPORT member_list FROM string_literal
             {$$ = new yy.ast.MemberImport($3, $5, @$);}
 
-          | '%' IMPORT string_literal AS identifier
+          | '%' IMPORT string_literal AS unqualified_identifier
             {$$ = new yy.ast.QualifiedImport($3, $5, @$);}
           ;
 
 member_list
-          : identifier                 {$$ =[$1];           }
-          | member_list ',' identifier {$$ = $1.concat($3); } 
+          : unqualified_identifier                 {$$ =[$1];           }
+          | member_list ',' unqualified_identifier {$$ = $1.concat($3); } 
           ;
 
 routes
@@ -192,14 +192,6 @@ filter
           | identifier 
             {$$ = new yy.ast.Filter($1, [], false, @$); }
           
-          | qualified_identifier '(' arguments ')'
-            {$$ = new yy.ast.Filter($1, $3, true, @$); }
-
-          | qualified_identifier '(' ')'
-            {$$ = new yy.ast.Filter($1, [], true, @$); }
-
-          | qualified_identifier 
-            {$$ = new yy.ast.Filter($1, [], false, @$); }
           ;
 
 view 
@@ -208,15 +200,6 @@ view
 
           | string_literal
             {$$ = new yy.ast.View($1, {}, @$); }
-          ;
-
-
-path
-          : identifier '.' identifier
-            {$$ = [$1]; }
-
-          | path '.' identifier
-            {$$ = $1.concat($3);}
           ;
 
 arguments
@@ -236,8 +219,6 @@ value
           | boolean_literal {$$ = $1;}
 
           | envvar {$$ = $1;}
-
-          | qualified_identifier {$$ = $1;}
 
           | identifier {$$ = $1;}
           ;
@@ -292,8 +273,16 @@ number_literal
           ;
 
 envvar
-          : '${' identifier '}'
+          : '${' unqualified_identifier '}'
              {$$ = new yy.ast.EnvVar($2, @$);  }
+          ;
+
+identifier
+          : unqualified_identifier
+            {$$ = $1;}
+
+          | qualified_identifier
+            {$$ = $1;}
           ;
 
 qualified_identifier
@@ -301,8 +290,15 @@ qualified_identifier
             {$$ = new yy.ast.QualifiedIdentifier($1, @$);}
           ;
 
-identifier
-          : IDENTIFIER
-            {$$ = new yy.ast.Identifier($1, @$);}
+path
+          : unqualified_identifier '.' unqualified_identifier
+            {$$ = [$1]; }
+
+          | path '.' unqualified_identifier
+            {$$ = $1.concat($3);}
           ;
-%%
+
+unqualified_identifier
+          : IDENTIFIER
+            {$$ = new yy.ast.UnqualifiedIdentifier($1, @$);}
+          ;

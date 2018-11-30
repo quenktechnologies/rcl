@@ -87,7 +87,7 @@ export class MemberImport implements Node {
     type = 'member-import';
 
     constructor(
-        public members: Identifier[],
+        public members: UnqualifiedIdentifier[],
         public module: StringLiteral,
         public location: Location) { }
 
@@ -102,7 +102,7 @@ export class QualifiedImport implements Node {
 
     constructor(
         public module: StringLiteral,
-        public id: Identifier,
+        public id: UnqualifiedIdentifier,
         public location: Location) { }
 
 }
@@ -163,7 +163,7 @@ export class Filter implements Node {
     type = 'filter';
 
     constructor(
-        public value: Identifier | QualifiedIdentifier,
+      public value: Identifier,
         public args: Value[],
         public invoked: boolean,
         public location: Location) { }
@@ -190,9 +190,7 @@ export class View implements Node {
 export type Value
     = List
     | Dict
-    | StringLiteral
-    | NumberLiteral
-    | BooleanLiteral
+    | Literal
     | QualifiedIdentifier
     | Identifier
     ;
@@ -205,7 +203,7 @@ export class List implements Node {
     type = 'list';
 
     constructor(
-        public members: Value[],
+        public elements: Value[],
         public location: Location) { }
 
 }
@@ -238,24 +236,20 @@ export class Pair implements Node {
 }
 
 /**
+ * Literal types.
+ */
+export type Literal
+    = StringLiteral
+    | NumberLiteral
+    | BooleanLiteral
+    ;
+
+/**
  * StringLiteral node.
  */
 export class StringLiteral implements Node {
 
     type = 'string-literal';
-
-    constructor(
-        public value: string,
-        public location: Location) { }
-
-}
-
-/**
- * BooleanLiteral node.
- */
-export class BooleanLiteral implements Node {
-
-    type = 'boolean-literal';
 
     constructor(
         public value: string,
@@ -277,6 +271,19 @@ export class NumberLiteral implements Node {
 }
 
 /**
+ * BooleanLiteral node.
+ */
+export class BooleanLiteral implements Node {
+
+    type = 'boolean-literal';
+
+    constructor(
+        public value: string,
+        public location: Location) { }
+
+}
+
+/**
  * EnvVar node.
  */
 export class EnvVar implements Node {
@@ -284,10 +291,18 @@ export class EnvVar implements Node {
     type = 'envvar';
 
     constructor(
-        public key: string,
+        public key: Identifier,
         public location: Location) { }
 
 }
+
+/**
+ * Identifier type.
+ */
+export type Identifier
+  = QualifiedIdentifier
+  | UnqualifiedIdentifier
+  ;
 
 /**
  * QualifiedIdentifier node.
@@ -297,17 +312,17 @@ export class QualifiedIdentifier implements Node {
     type = 'qualified-identifier';
 
     constructor(
-        public path: Identifier,
+        public path: UnqualifiedIdentifier[],
         public location: Location) { }
 
 }
 
 /**
- * Identifier node.
+ * UnqualifiedIdentifier node.
  */
-export class Identifier implements Node {
+export class UnqualifiedIdentifier implements Node {
 
-    type = 'identifier';
+    type = 'unqualified-identifier';
 
     constructor(
         public value: string,

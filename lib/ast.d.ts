@@ -57,21 +57,21 @@ export declare type Import = MemberImport | QualifiedImport;
  * MemberImport node.
  */
 export declare class MemberImport implements Node {
-    members: Identifier[];
+    members: UnqualifiedIdentifier[];
     module: StringLiteral;
     location: Location;
     type: string;
-    constructor(members: Identifier[], module: StringLiteral, location: Location);
+    constructor(members: UnqualifiedIdentifier[], module: StringLiteral, location: Location);
 }
 /**
  * QualifiedImport node.
  */
 export declare class QualifiedImport implements Node {
     module: StringLiteral;
-    id: Identifier;
+    id: UnqualifiedIdentifier;
     location: Location;
     type: string;
-    constructor(module: StringLiteral, id: Identifier, location: Location);
+    constructor(module: StringLiteral, id: UnqualifiedIdentifier, location: Location);
 }
 /**
  * Comment node
@@ -111,12 +111,12 @@ export declare class Pattern implements Node {
  * Filter node.
  */
 export declare class Filter implements Node {
-    value: Identifier | QualifiedIdentifier;
+    value: Identifier;
     args: Value[];
     invoked: boolean;
     location: Location;
     type: string;
-    constructor(value: Identifier | QualifiedIdentifier, args: Value[], invoked: boolean, location: Location);
+    constructor(value: Identifier, args: Value[], invoked: boolean, location: Location);
 }
 /**
  * View node.
@@ -131,15 +131,15 @@ export declare class View implements Node {
 /**
  * Value types.
  */
-export declare type Value = List | Dict | StringLiteral | NumberLiteral | BooleanLiteral | QualifiedIdentifier | Identifier;
+export declare type Value = List | Dict | Literal | QualifiedIdentifier | Identifier;
 /**
  * List node.
  */
 export declare class List implements Node {
-    members: Value[];
+    elements: Value[];
     location: Location;
     type: string;
-    constructor(members: Value[], location: Location);
+    constructor(elements: Value[], location: Location);
 }
 /**
  * Dict node.
@@ -161,18 +161,13 @@ export declare class Pair implements Node {
     constructor(key: Identifier, value: Value, location: Location);
 }
 /**
+ * Literal types.
+ */
+export declare type Literal = StringLiteral | NumberLiteral | BooleanLiteral;
+/**
  * StringLiteral node.
  */
 export declare class StringLiteral implements Node {
-    value: string;
-    location: Location;
-    type: string;
-    constructor(value: string, location: Location);
-}
-/**
- * BooleanLiteral node.
- */
-export declare class BooleanLiteral implements Node {
     value: string;
     location: Location;
     type: string;
@@ -188,27 +183,40 @@ export declare class NumberLiteral implements Node {
     constructor(value: string, location: Location);
 }
 /**
+ * BooleanLiteral node.
+ */
+export declare class BooleanLiteral implements Node {
+    value: string;
+    location: Location;
+    type: string;
+    constructor(value: string, location: Location);
+}
+/**
  * EnvVar node.
  */
 export declare class EnvVar implements Node {
-    key: string;
+    key: Identifier;
     location: Location;
     type: string;
-    constructor(key: string, location: Location);
+    constructor(key: Identifier, location: Location);
 }
+/**
+ * Identifier type.
+ */
+export declare type Identifier = QualifiedIdentifier | UnqualifiedIdentifier;
 /**
  * QualifiedIdentifier node.
  */
 export declare class QualifiedIdentifier implements Node {
-    path: Identifier;
+    path: UnqualifiedIdentifier[];
     location: Location;
     type: string;
-    constructor(path: Identifier, location: Location);
+    constructor(path: UnqualifiedIdentifier[], location: Location);
 }
 /**
- * Identifier node.
+ * UnqualifiedIdentifier node.
  */
-export declare class Identifier implements Node {
+export declare class UnqualifiedIdentifier implements Node {
     value: string;
     location: Location;
     type: string;

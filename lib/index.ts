@@ -21,7 +21,7 @@ import {
     NumberLiteral,
     BooleanLiteral,
     QualifiedIdentifier,
-    Identifier
+    UnqualifiedIdentifier
 } from './ast';
 
 /**
@@ -36,7 +36,7 @@ export const tree: Nodes = {
     File, Include, MemberImport, QualifiedImport,
     Comment, Route, Pattern, Filter, View, EnvVar, List, Dict, Pair,
     StringLiteral, NumberLiteral, BooleanLiteral, QualifiedIdentifier,
-    Identifier
+    UnqualifiedIdentifier
 }
 
 /**
