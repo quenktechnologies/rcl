@@ -1,6 +1,6 @@
 import * as must from 'must';
 import * as fs from 'fs';
-import { parse } from '../src';
+import { parse, tree } from '../src';
 
 var tests = null;
 
@@ -19,15 +19,22 @@ function makeTest(test, index) {
     var file = index.replace(/\s/g, '-');
 
     if (process.env.GENERATE) {
-        fs.writeFileSync(`./test/expectations/${file}.json`, json(parse(test)));
-        return;
+
+        return parse(test, tree)
+            .map(json)
+            .map(txt => fs.writeFileSync(`./test/expectations/${file}.json`, txt))
+            .orRight((e: Error) => { throw e; });
+
     }
 
     if (!test.skip) {
 
-        compare(json(parse(test)), fs.readFileSync(`./test/expectations/${file}.json`, {
-            encoding: 'utf8'
-        }));
+        parse(test, tree)
+            .map(json)
+        .map(txt => compare(txt, 
+          fs.readFileSync(`./test/expectations/${file}.json`, {
+                encoding: 'utf8'
+            })));
 
     }
 
