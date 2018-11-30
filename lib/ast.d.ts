@@ -44,10 +44,10 @@ export declare class File implements Node {
  * Include node.
  */
 export declare class Include implements Node {
-    path: string;
+    path: StringLiteral;
     location: Location;
     type: string;
-    constructor(path: string, location: Location);
+    constructor(path: StringLiteral, location: Location);
 }
 /**
  * Import types.

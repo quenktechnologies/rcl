@@ -66,7 +66,7 @@ export class Include implements Node {
     type = 'include';
 
     constructor(
-        public path: string,
+        public path: StringLiteral,
         public location: Location) { }
 
 }
@@ -110,10 +110,10 @@ export class QualifiedImport implements Node {
 /**
  * Routes type.
  */
-export type Routes 
-  = Comment
-  | Route
-  ;
+export type Routes
+    = Comment
+    | Route
+    ;
 
 /**
  * Comment node
