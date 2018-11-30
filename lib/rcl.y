@@ -199,7 +199,7 @@ view
             {$$ = new yy.ast.View($1, $2, @$); }
 
           | string_literal
-            {$$ = new yy.ast.View($1, {}, @$); }
+            {$$ = new yy.ast.View($1, new yy.ast.Dict([], @$), @$); }
           ;
 
 arguments
