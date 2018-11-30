@@ -53,7 +53,7 @@ export class File implements Node {
     constructor(
         public includes: Include[],
         public imports: Import[],
-        public routes: Route | Comment[],
+      public routes: Route[] | Comment[],
         public location: Location) { }
 
 }
@@ -163,7 +163,7 @@ export class Filter implements Node {
     type = 'filter';
 
     constructor(
-      public value: Identifier,
+        public value: Identifier,
         public args: Value[],
         public invoked: boolean,
         public location: Location) { }
@@ -191,7 +191,6 @@ export type Value
     = List
     | Dict
     | Literal
-    | QualifiedIdentifier
     | Identifier
     ;
 
@@ -300,9 +299,9 @@ export class EnvVar implements Node {
  * Identifier type.
  */
 export type Identifier
-  = QualifiedIdentifier
-  | UnqualifiedIdentifier
-  ;
+    = QualifiedIdentifier
+    | UnqualifiedIdentifier
+    ;
 
 /**
  * QualifiedIdentifier node.

@@ -35,10 +35,10 @@ export interface Node {
 export declare class File implements Node {
     includes: Include[];
     imports: Import[];
-    routes: Route | Comment[];
+    routes: Route[] | Comment[];
     location: Location;
     type: string;
-    constructor(includes: Include[], imports: Import[], routes: Route | Comment[], location: Location);
+    constructor(includes: Include[], imports: Import[], routes: Route[] | Comment[], location: Location);
 }
 /**
  * Include node.
@@ -131,7 +131,7 @@ export declare class View implements Node {
 /**
  * Value types.
  */
-export declare type Value = List | Dict | Literal | QualifiedIdentifier | Identifier;
+export declare type Value = List | Dict | Literal | Identifier;
 /**
  * List node.
  */
