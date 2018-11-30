@@ -51,10 +51,10 @@ tests = {
     'should allow filters and views': 'GET /random refresh "main/random" {pool = [1,2,3]}',
     'should allow comments': '-- This is a comment!',
     'should allow envvars': 'GET / action(${VALUE})',
-    'should allow includes': 'include "path/to/include"',
+    'should allow includes': '%include "path/to/include"',
     'should all together now': `
 
-include "./other/file/conf" 
+%include "./other/file/conf" 
 
 %import refresh,check,random from "app/middleware"
 %import "app/Users" as users 
