@@ -111,8 +111,8 @@ includes
           ;
 
 include
-          : INCLUDE string_literal
-            {$$ = new yy.ast.Include($2, @$);}
+          : '%' INCLUDE string_literal
+            {$$ = new yy.ast.Include($3, @$);}
           ;
 
 imports
