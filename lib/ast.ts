@@ -1,10 +1,19 @@
 
 /**
- * AbstractSyntaxTree
+ * Nodes map.
  */
-export interface AbstractSyntaxTree {
+export interface Nodes {
 
-    [key: string]: Node
+    [key: string]: Constructor
+
+}
+
+/**
+ * Constructor function for a generic node.
+ */
+export interface Constructor {
+
+    new(...p: any[]): Node
 
 }
 
@@ -18,37 +27,47 @@ export interface Location {
 }
 
 /**
- * Node represents a member of the lang's AST.
+ * Node is the common interface all members of the AST implement.
  */
-export abstract class Node {
+export interface Node {
 
-    constructor(public type: string, public location: Location) { }
+    /**
+     * type of the Node.
+     */
+    type: string;
+
+    /**
+     * location in the source text where the node was parsed from.
+     */
+    location: Location;
 
 }
 
 /**
  * File node.
- *
- * Contents of source text.
  */
-export class File extends Node {
+export class File implements Node {
+
+    type = 'file';
 
     constructor(
         public includes: Include[],
         public imports: Import[],
         public routes: Route | Comment[],
-        public location: Location) { super('file', location); }
+        public location: Location) { }
 
 }
 
 /**
  * Include node.
  */
-export class Include extends Node {
+export class Include implements Node {
 
-  constructor(
-    public path:string, 
-    public location:Location){ super('include', location); }
+    type = 'include';
+
+    constructor(
+        public path: string,
+        public location: Location) { }
 
 }
 
@@ -63,51 +82,54 @@ export type Import
 /**
  * MemberImport node.
  */
-export class MemberImport extends Node {
+export class MemberImport implements Node {
+
+    type = 'member-import';
 
     constructor(
         public members: Identifier[],
         public module: StringLiteral,
-        public location: Location) { super('member-import', location); }
+        public location: Location) { }
 
 }
 
 /**
  * QualifiedImport node.
  */
-export class QualifiedImport extends Node {
+export class QualifiedImport implements Node {
+
+    type = 'qualified-import';
 
     constructor(
         public module: StringLiteral,
         public id: Identifier,
-        public location: Location) { super('qualified-import', location); }
+        public location: Location) { }
 
 }
 
 /**
  * Comment node
  */
-export class Comment extends Node {
+export class Comment implements Node {
 
-    constructor(public value: string, location: Location) {
+    type = 'comment';
 
-        super('comment', location);
-
-    }
+    constructor(public value: string, public location: Location) { }
 
 }
 /**
  * Route node.
  */
-export class Route extends Node {
+export class Route implements Node {
+
+    type = 'route';
 
     constructor(
         public method: Method,
         public pattern: Pattern,
         public filters: Filter[],
         public view: View,
-        public location: Location) { super('route', location); }
-
+        public location: Location) { }
 
 }
 
@@ -119,46 +141,48 @@ export type Method
     | 'PUT'
     | 'POST'
     | 'PATCH'
-    | 'DELETE';
+    | 'DELETE'
+    ;
 
 /**
  * Pattern node.
  */
-export class Pattern extends Node {
+export class Pattern implements Node {
 
-    constructor(public value: string, public location: Location) {
+    type = 'pattern';
 
-        super('pattern', location);
-
-    }
+    constructor(public value: string, public location: Location) { }
 
 }
 
 /**
  * Filter node.
  */
-export class Filter extends Node {
+export class Filter implements Node {
+
+    type = 'filter';
 
     constructor(
         public value: Identifier | QualifiedIdentifier,
         public args: Value[],
         public invoked: boolean,
-        public location: Location) { super('filter', location); }
+        public location: Location) { }
 
 }
 
 /**
  * View node.
  */
-export class View extends Node {
+export class View implements Node {
+
+    type = 'view';
 
     constructor(
         public view: StringLiteral,
         public context: Dict | null,
-        public location: Location) { super('view', location); }
+        public location: Location) { }
 
 }
-
 
 /**
  * Value types.
@@ -176,99 +200,117 @@ export type Value
 /**
  * List node.
  */
-export class List extends Node {
+export class List implements Node {
+
+    type = 'list';
 
     constructor(
         public members: Value[],
-        public location: Location) { super('list', location); }
+        public location: Location) { }
 
 }
 
 /**
  * Dict node.
  */
-export class Dict extends Node {
+export class Dict implements Node {
+
+    type = 'dict';
 
     constructor(
         public properties: Pair[],
-        public location: Location) { super('dict', location); }
+        public location: Location) { }
 
 }
 
 /**
  * Pair node.
  */
-export class Pair extends Node {
+export class Pair implements Node {
+
+    type = 'pair';
 
     constructor(
         public key: Identifier,
         public value: Value,
-        public location: Location) { super('pair', location); }
+        public location: Location) { }
 
 }
 
 /**
  * StringLiteral node.
  */
-export class StringLiteral extends Node {
+export class StringLiteral implements Node {
+
+    type = 'string-literal';
 
     constructor(
         public value: string,
-        public location: Location) { super('string-literal', location); }
+        public location: Location) { }
 
 }
 
 /**
  * BooleanLiteral node.
  */
-export class BooleanLiteral extends Node {
+export class BooleanLiteral implements Node {
+
+    type = 'boolean-literal';
 
     constructor(
         public value: string,
-        public location: Location) { super('boolean-literal', location); }
+        public location: Location) { }
 
 }
 
 /**
  * NumberLiteral node.
  */
-export class NumberLiteral extends Node {
+export class NumberLiteral implements Node {
+
+    type = 'number-literal';
 
     constructor(
         public value: string,
-        public location: Location) { super('number-literal', location); }
+        public location: Location) { }
 
 }
 
 /**
  * EnvVar node.
  */
-export class EnvVar extends Node {
+export class EnvVar implements Node {
+
+    type = 'envvar';
 
     constructor(
         public key: string,
-        location: Location) { super('envar', location); }
+        public location: Location) { }
 
 }
 
 /**
  * QualifiedIdentifier node.
  */
-export class QualifiedIdentifier extends Node {
+export class QualifiedIdentifier implements Node {
+
+    type = 'qualified-identifier';
 
     constructor(
         public path: Identifier,
-        public location: Location) { super('qualified-identifier', location); }
+        public location: Location) { }
 
 }
 
 /**
  * Identifier node.
  */
-export class Identifier extends Node {
+export class Identifier implements Node {
+
+    type = 'identifier';
 
     constructor(
         public value: string,
-        public location: Location) { super('identifier', location); }
+        public location: Location) { }
 
 }

@@ -1,6 +1,15 @@
 /// <reference path="parser.d.ts" />
-import * as nodes from './ast';
+import { Either } from '@quenk/noni/lib/data/either';
+import { Nodes, Node } from './ast';
 /**
- * parse a source text into an AST.
+ * Result of attempting to parse a source text.
  */
-export declare const parse: (str: string, ast?: nodes.AbstractSyntaxTree) => nodes.File;
+export declare type Result = Either<Error, Node>;
+/**
+ * tree is a map of reference nodes that can be used during parsing.
+ */
+export declare const tree: Nodes;
+/**
+ * parse source text into an abstract syntax tree.
+ */
+export declare const parse: (str: string, ast: Nodes) => Either<Error, Node>;
