@@ -1,4 +1,5 @@
 /// <reference path='parser.d.ts' />
+import parser = require('./parser');
 import { Either, left, right } from '@quenk/noni/lib/data/either';
 import {
     Nodes,
@@ -22,7 +23,6 @@ import {
     QualifiedIdentifier,
     Identifier
 } from './ast';
-import parser = require('./parser');
 
 /**
  * Result of attempting to parse a source text.
