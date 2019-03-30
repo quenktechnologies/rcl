@@ -292,7 +292,7 @@ qualified_identifier
 
 path
           : unqualified_identifier '.' unqualified_identifier
-            {$$ = [$1]; }
+            {$$ = [$1, $3]; }
 
           | path '.' unqualified_identifier
             {$$ = $1.concat($3);}
