@@ -92,11 +92,11 @@ export declare class Comment implements Node {
 export declare class Route implements Node {
     method: Method;
     pattern: Pattern;
-    filters: Filter[];
+    filters: FilterExpression[];
     view: View;
     location: Location;
     type: string;
-    constructor(method: Method, pattern: Pattern, filters: Filter[], view: View, location: Location);
+    constructor(method: Method, pattern: Pattern, filters: FilterExpression[], view: View, location: Location);
 }
 /**
  * Method (http) supported.
@@ -111,6 +111,10 @@ export declare class Pattern implements Node {
     type: string;
     constructor(value: string, location: Location);
 }
+/**
+ * FilterExpression
+ */
+export declare type FilterExpression = Filter | Spread;
 /**
  * Filter node.
  */

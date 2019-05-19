@@ -135,7 +135,7 @@ export class Route implements Node {
     constructor(
         public method: Method,
         public pattern: Pattern,
-        public filters: Filter[],
+        public filters: FilterExpression[],
         public view: View,
         public location: Location) { }
 
@@ -162,6 +162,11 @@ export class Pattern implements Node {
     constructor(public value: string, public location: Location) { }
 
 }
+
+/**
+ * FilterExpression
+ */
+export type FilterExpression = Filter | Spread;
 
 /**
  * Filter node.
