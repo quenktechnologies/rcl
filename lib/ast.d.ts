@@ -123,6 +123,15 @@ export declare class Filter implements Node {
     constructor(value: Identifier, args: Value[], invoked: boolean, location: Location);
 }
 /**
+ * Spread node.
+ */
+export declare class Spread implements Node {
+    filter: Filter;
+    location: Location;
+    type: string;
+    constructor(filter: Filter, location: Location);
+}
+/**
  * View node.
  */
 export declare class View implements Node {

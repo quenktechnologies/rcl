@@ -179,6 +179,19 @@ export class Filter implements Node {
 }
 
 /**
+ * Spread node.
+ */
+export class Spread implements Node {
+
+    type = 'spread';
+
+    constructor(
+        public filter: Filter,
+        public location: Location) { }
+
+}
+
+/**
  * View node.
  */
 export class View implements Node {

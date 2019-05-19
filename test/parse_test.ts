@@ -31,10 +31,10 @@ function makeTest(test, index) {
 
         parse(test, tree)
             .map(json)
-        .map(txt => compare(txt, 
-          fs.readFileSync(`./test/expectations/${file}.json`, {
-                encoding: 'utf8'
-            })));
+            .map(txt => compare(txt,
+                fs.readFileSync(`./test/expectations/${file}.json`, {
+                    encoding: 'utf8'
+                })));
 
     }
 
@@ -49,6 +49,7 @@ tests = {
         'PUT /users/:id refresh check({perm="admin" v=12}) update',
     'should allow views': 'GET / "some/view"',
     'should allow filters and views': 'GET /random refresh "main/random" {pool = [1,2,3]}',
+    'should allow spreading': 'GET /route ...filters action',
     'should allow comments': '-- This is a comment!',
     'should allow envvars': 'GET / action(${VALUE})',
     'should allow includes': '%include "path/to/include"',

@@ -12,6 +12,7 @@ import {
     Route,
     Pattern,
     Filter,
+    Spread,
     View,
     EnvVar,
     List,
@@ -34,7 +35,7 @@ export type Result = Either<Error, Node>;
  */
 export const tree: Nodes = {
     File, Include, MemberImport, QualifiedImport,
-    Comment, Route, Pattern, Filter, View, EnvVar, List, Dict, Pair,
+    Comment, Route, Pattern, Filter, Spread, View, EnvVar, List, Dict, Pair,
     StringLiteral, NumberLiteral, BooleanLiteral, QualifiedIdentifier,
     UnqualifiedIdentifier
 }

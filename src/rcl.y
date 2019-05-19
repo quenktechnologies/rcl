@@ -53,6 +53,7 @@ Characters [^\n]*
 {StringLiteral}                                          return 'STRING_LITERAL';
 {Identifier}                                             return 'IDENTIFIER';
 {Path}                                                   return 'PATH';
+'...'                                                    return 'ELLIPSIS';   
 '${'                                                     return '${';
 '('                                                      return '(';
 ')'                                                      return ')';
@@ -177,8 +178,19 @@ filters
           : filter
             {$$ = [$1];}
 
+          | spread
+            {$$ = [$1];}
+
           | filters filter
             {$$ = $1.concat($2);}
+
+          | filters spread
+            {$$ = $1.concat($2);}
+          ;
+
+spread
+          : ELLIPSIS filter
+            {$$ = new yy.ast.Spread($2, @$); }
           ;
 
 filter
