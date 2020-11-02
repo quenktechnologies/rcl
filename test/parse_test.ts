@@ -42,40 +42,58 @@ function makeTest(test, index) {
 
 tests = {
 
-    'should allow imports': '%import refresh,check,random from "app/middleware"',
-    'should allow qualified imports': '%import "app/Users" as users',
     'should allow actions': 'GET / action',
     'should allow filters and actions':
         'PUT /users/:id refresh check({perm="admin" v=12}) update',
     'should allow views': 'GET / "some/view"',
     'should allow filters and views': 'GET /random refresh "main/random" {pool = [1,2,3]}',
-    'should allow spreading': 'GET /route ...filters action',
     'should allow comments': '-- This is a comment!',
     'should allow envvars': 'GET / action(${VALUE})',
     'should allow includes': '%include "path/to/include"',
+
+    'should support module member pointers':
+        `GET /foo controllers#default`,
+
+    'should support module member pointers with relative paths':
+        `
+          GET /foo ../controllers#member
+          GET /foo ./controllers#member
+          GET /foo ./#member
+          GET /foo ../#member
+         `,
+
+    'should support module member pointers from node_modules':
+        `GET /foo @quenk/controllers#default`,
+
+    'should support variable assignment': `
+        %set myVar = 12
+        %set myOtherVar = @path/to/value#value`,
+
     'should all together now': `
 
 %include "./other/file/conf" 
 
-%import refresh,check,random from "app/middleware"
-%import "app/Users" as users 
-%import args from "arguments"
+%set refresh = app/middleware#refresh
+%set check = app/middleware#check
+%set random = app/middleware#random
+%set users = users#Users()
 
-GET     /users refresh users.search
+GET /users refresh users.search
 
-POST    /users refresh users.create
+POST /users refresh users.create
 
-PUT     /users/:id refresh check({perm="admin" v=12}) users.update
+PUT /users/:id refresh check({perm="admin" v=12}) users.update
 
-DELETE  /users/:id random(args, process.env.value) users.delete
+DELETE /users/:id random(args, process.env.value) users.delete
  
-GET     /random refresh "main/random" {pool = [1,2,3]}
+GET /random refresh "main/random" {pool = [1,2,3]}
 
 -- This is a comment!
 
-DELETE  /users/:id refresh check(["admin", "remove"]) users.delete
+DELETE /users/:id refresh check(["admin", "remove"]) users.delete
 
-GET / "main/index" {name = "Nikosi"}`
+GET / "main/index" {name = "Nikosi"}`,
+
 };
 
 describe('Parser', function() {

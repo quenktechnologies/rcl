@@ -149,8 +149,14 @@ pattern
           ;
 
 filters
-          : filter
-            {$$ = [$1]          }
+          : candidate_identifier
+            {$$ = [$1];}
+
+          | module_member
+            {$$ = [$1];}
+          
+          | function_call
+            {$$ = [$1];}
 
           | filters candidate_identifier
             {$$ = $1.concat($2);}
@@ -162,17 +168,6 @@ filters
             {$$ = $1.concat($2);}
           ;
 
-filter
-          : candidate_identifier
-            {$$ = [$1];}
-
-          | module_member
-            {$$ = [$1];}
-          
-          | function_call
-            {$$ = [$1];}
-          ;
-     
 view 
           : string_literal dict
             {$$ = new yy.ast.View($1, $2, @$); }
