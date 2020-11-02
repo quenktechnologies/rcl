@@ -6,15 +6,14 @@ import {
     Node,
     File,
     Include,
-    MemberImport,
-    QualifiedImport,
     Comment,
+    Set,
     Route,
     Pattern,
-    Filter,
-    Spread,
     View,
     EnvVar,
+  FunctionCall,
+    ModuleMember,
     List,
     Dict,
     Pair,
@@ -22,7 +21,7 @@ import {
     NumberLiteral,
     BooleanLiteral,
     QualifiedIdentifier,
-    UnqualifiedIdentifier
+    Identifier
 } from './ast';
 
 /**
@@ -34,10 +33,9 @@ export type Result = Either<Error, Node>;
  * tree is a map of reference nodes that can be used during parsing.
  */
 export const tree: Nodes = {
-    File, Include, MemberImport, QualifiedImport,
-    Comment, Route, Pattern, Filter, Spread, View, EnvVar, List, Dict, Pair,
-    StringLiteral, NumberLiteral, BooleanLiteral, QualifiedIdentifier,
-    UnqualifiedIdentifier
+    File, Include, Comment, Set, Route, Pattern, View, ModuleMember,
+    EnvVar, FunctionCall, List, Dict, Pair, StringLiteral, NumberLiteral, 
+    BooleanLiteral,    QualifiedIdentifier, Identifier
 }
 
 /**

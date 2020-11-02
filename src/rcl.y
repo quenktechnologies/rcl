@@ -25,6 +25,7 @@ EscapeSequence {CharacterEscapeSequence}|{OctalEscapeSequence}|{HexEscapeSequenc
 DoubleStringCharacter ([^\"\\\n\r]+)|(\\{EscapeSequence})|{LineContinuation}
 StringLiteral (\"{DoubleStringCharacter}*\")
 Path (((\.{1,2}\/){1,2})|([/]))([\w-:/.]+)?
+NodeModulePath [@\w][@\w-/]+
 Characters [^\n]*
 
 /* Lexer flags */
@@ -45,15 +46,13 @@ Characters [^\n]*
 'PUT'                                                    return 'PUT';
 'DELETE'                                                 return 'DELETE';
 'HEAD'                                                   return 'HEAD';
-'import'                                                 return 'IMPORT';
-'as'                                                     return 'AS';
-'from'                                                   return 'FROM';
 'include'                                                return 'INCLUDE';
+'set'                                                    return 'SET';
 {NumberLiteral}                                          return 'NUMBER_LITERAL';
 {StringLiteral}                                          return 'STRING_LITERAL';
 {Identifier}                                             return 'IDENTIFIER';
 {Path}                                                   return 'PATH';
-'...'                                                    return 'ELLIPSIS';   
+{NodeModulePath}                                         return 'NODE_MODULE_PATH';
 '${'                                                     return '${';
 '('                                                      return '(';
 ')'                                                      return ')';
@@ -69,6 +68,8 @@ Characters [^\n]*
 '{'                                                      return '{';
 '}'                                                      return '}';
 '/'                                                      return '/';
+'#'                                                      return '#';
+'@'                                                      return '@';
 <*><<EOF>>                                               return 'EOF';
 
 /lex
@@ -78,36 +79,36 @@ Characters [^\n]*
 %%
 
 file
-          : includes imports routes EOF
-            {$$ = new yy.ast.File($1, $2, $3, @$); return $$;}
-
-          | includes imports EOF
-            {$$ = new yy.ast.File($1, $2, [], @$); return $$;}
-
-          | includes routes EOF
-            {$$ = new yy.ast.File($1, [], $3, @$); return $$;}
-
-          | includes EOF
-            {$$ = new yy.ast.File($1, [], [], @$); return $$;}
-
-          | imports routes EOF
-            {$$ = new yy.ast.File([], $1, $2, @$); return $$;}
-
-          | imports EOF
-            {$$ = new yy.ast.File([], $1, [], @$); return $$;}
-
-          | routes EOF
-            {$$ = new yy.ast.File([], [], $1, @$); return $$;}
+          : file_body EOF
+            {$$ = new yy.ast.File($1, @$); return $$;}
 
           | EOF
-            {$$ = new yy.ast.File([], [], [], @$); return $$;}
+            {$$ = new yy.ast.File([], @$); return $$;}
           ;
 
-includes
+file_body
           : include
             {$$ = [$1];}
 
-          | includes include
+          | comment
+            {$$ = [$1];}
+
+          | set
+            {$$ = [$1];}
+
+          | route
+            {$$ = [$1];}
+
+          | file_body include
+            {$$ = $1.concat($2);}
+
+          | file_body comment
+            {$$ = $1.concat($2);}
+
+          | file_body set
+            {$$ = $1.concat($2);}
+
+          | file_body route
             {$$ = $1.concat($2);}
           ;
 
@@ -116,36 +117,9 @@ include
             {$$ = new yy.ast.Include($3, @$);}
           ;
 
-imports
-          : import          {$$ = [$1];           }
-          | imports import  {$$ = $1.concat($2);  }
-          ;
-
-import
-          : '%' IMPORT member_list FROM string_literal
-            {$$ = new yy.ast.MemberImport($3, $5, @$);}
-
-          | '%' IMPORT string_literal AS unqualified_identifier
-            {$$ = new yy.ast.QualifiedImport($3, $5, @$);}
-          ;
-
-member_list
-          : unqualified_identifier                 {$$ =[$1];           }
-          | member_list ',' unqualified_identifier {$$ = $1.concat($3); } 
-          ;
-
-routes
-          : comment
-            {$$ = [$1];}
-
-          | route 
-            {$$ = [$1];}
-
-          | routes comment
-            {$$ = $1.concat($2);}
-
-          | routes route
-            {$$ = $1.concat($2);}
+set
+          : '%' SET identifier '=' expression
+            {$$ = new yy.ast.Set($3, $5, @$);}
           ;
 
 comment
@@ -176,36 +150,29 @@ pattern
 
 filters
           : filter
-            {$$ = [$1];}
+            {$$ = [$1]          }
 
-          | spread
-            {$$ = [$1];}
-
-          | filters filter
+          | filters candidate_identifier
             {$$ = $1.concat($2);}
 
-          | filters spread
+          | filters module_member
             {$$ = $1.concat($2);}
-          ;
 
-spread
-          : ELLIPSIS filter
-            {$$ = new yy.ast.Spread($2, @$); }
+          | filters function_call
+            {$$ = $1.concat($2);}
           ;
 
 filter
+          : candidate_identifier
+            {$$ = [$1];}
 
-          : identifier '(' arguments ')'
-            {$$ = new yy.ast.Filter($1, $3, true, @$); }
-
-          | identifier '(' ')' 
-            {$$ = new yy.ast.Filter($1, [], true, @$); }
-
-          | identifier 
-            {$$ = new yy.ast.Filter($1, [], false, @$); }
+          | module_member
+            {$$ = [$1];}
           
+          | function_call
+            {$$ = [$1];}
           ;
-
+     
 view 
           : string_literal dict
             {$$ = new yy.ast.View($1, $2, @$); }
@@ -214,13 +181,12 @@ view
             {$$ = new yy.ast.View($1, new yy.ast.Dict([], @$), @$); }
           ;
 
-arguments
-          : value                {$$ = [$1];         }
-          | arguments ',' value  {$$ = $1.concat($3);} 
-          ;
+expression
+          : function_call {$$ = $1;}
 
-value
-          : list {$$ = $1;}
+          | module_member {$$ = $1;}
+
+          | list {$$ = $1;}
 
           | dict {$$ = $1;}
 
@@ -232,20 +198,56 @@ value
 
           | envvar {$$ = $1;}
 
-          | identifier {$$ = $1;}
+          | candidate_identifier {$$ = $1;}
+          ;
+
+function_call
+
+          : candidate_identifier '(' ')' 
+            {$$ = new yy.ast.FunctionCall($1, [], @$); }
+
+          | candidate_identifier '(' arguments ')'
+            {$$ = new yy.ast.FunctionCall($1, $3, @$); }
+
+          | module_member '(' ')' 
+            {$$ = new yy.ast.FunctionCall($1, [], @$); }
+
+          | module_member '(' arguments ')'
+            {$$ = new yy.ast.FunctionCall($1, $3, @$); }
+          ;
+
+arguments
+          : expression                {$$ = [$1];         }
+          | arguments ',' expression  {$$ = $1.concat($3);} 
+          ;
+
+module_member
+          : module_path '#' identifier
+            {$$ = yy.ast.ModuleMember($1, $3, @$);}
+          ;
+
+module_path
+          : IDENTIFIER
+            {$$ = $1;}
+
+          | PATH
+            {$$ = $1;}
+
+          | NODE_MODULE_PATH
+            {$$ = $1;}
           ;
 
 list      
           : '[' ']'
             {$$ = new yy.ast.List([], @$); }
 
-          | '[' value_list ']'
+          | '[' expression_list ']'
             {$$ = new yy.ast.List($2, @$); }
           ;
 
-value_list
-          : value                 {$$ = [$1];         }
-          | value_list ',' value  {$$ = $1.concat($3);}
+expression_list
+          : expression                      {$$ = [$1];         }
+          | expression_list ',' expression  {$$ = $1.concat($3);}
           ;
 
 dict
@@ -262,7 +264,7 @@ pairs
           ;
 
 pair
-          : identifier '=' value
+          : candidate_identifier '=' expression
             {$$ = new yy.ast.Pair($1, $3, @$);}
           ;
 
@@ -285,12 +287,12 @@ number_literal
           ;
 
 envvar
-          : '${' unqualified_identifier '}'
+          : '${' identifier '}'
              {$$ = new yy.ast.EnvVar($2, @$);  }
           ;
 
-identifier
-          : unqualified_identifier
+candidate_identifier
+          : identifier
             {$$ = $1;}
 
           | qualified_identifier
@@ -298,19 +300,19 @@ identifier
           ;
 
 qualified_identifier
-          : path 
+          : property_path 
             {$$ = new yy.ast.QualifiedIdentifier($1, @$);}
           ;
 
-path
-          : unqualified_identifier '.' unqualified_identifier
+property_path
+          : identifier '.' identifier
             {$$ = [$1, $3]; }
 
-          | path '.' unqualified_identifier
+          | property_path '.' identifier
             {$$ = $1.concat($3);}
           ;
 
-unqualified_identifier
+identifier
           : IDENTIFIER
-            {$$ = new yy.ast.UnqualifiedIdentifier($1, @$);}
+            {$$ = new yy.ast.Identifier($1, @$);}
           ;
