@@ -51,12 +51,15 @@ export class File implements Node {
     type = 'file';
 
     constructor(
-        public includes: Include[],
-        public imports: Import[],
-        public routes: Routes[],
+        public body: FileBody[],
         public location: Location) { }
 
 }
+
+/**
+ * FileBody are nodes that occur in the body of the file.
+ */
+export type FileBody = Include | Comment | Set | Route;
 
 /**
  * Include node.
@@ -72,50 +75,6 @@ export class Include implements Node {
 }
 
 /**
- * Import types.
- */
-export type Import
-    = MemberImport
-    | QualifiedImport
-    ;
-
-/**
- * MemberImport node.
- */
-export class MemberImport implements Node {
-
-    type = 'member-import';
-
-    constructor(
-        public members: UnqualifiedIdentifier[],
-        public module: StringLiteral,
-        public location: Location) { }
-
-}
-
-/**
- * QualifiedImport node.
- */
-export class QualifiedImport implements Node {
-
-    type = 'qualified-import';
-
-    constructor(
-        public module: StringLiteral,
-        public id: UnqualifiedIdentifier,
-        public location: Location) { }
-
-}
-
-/**
- * Routes type.
- */
-export type Routes
-    = Comment
-    | Route
-    ;
-
-/**
  * Comment node
  */
 export class Comment implements Node {
@@ -125,6 +84,18 @@ export class Comment implements Node {
     constructor(public value: string, public location: Location) { }
 
 }
+
+export class Set implements Node {
+
+    type = 'set';
+
+    constructor(
+        public id: Identifier,
+        public value: Expression,
+        public location: Location) { }
+
+}
+
 /**
  * Route node.
  */
@@ -135,7 +106,7 @@ export class Route implements Node {
     constructor(
         public method: Method,
         public pattern: Pattern,
-        public filters: FilterExpression[],
+        public filters: Filter[],
         public view: View,
         public location: Location) { }
 
@@ -164,37 +135,13 @@ export class Pattern implements Node {
 }
 
 /**
- * FilterExpression
- */
-export type FilterExpression = Filter | Spread;
-
-/**
  * Filter node.
  */
-export class Filter implements Node {
-
-    type = 'filter';
-
-    constructor(
-        public value: Identifier,
-        public args: Value[],
-        public invoked: boolean,
-        public location: Location) { }
-
-}
-
-/**
- * Spread node.
- */
-export class Spread implements Node {
-
-    type = 'spread';
-
-    constructor(
-        public filter: Filter,
-        public location: Location) { }
-
-}
+export type Filter
+    = CandidateIdentifier
+    | ModuleMember
+    | FunctionCall
+    ;
 
 /**
  * View node.
@@ -211,14 +158,44 @@ export class View implements Node {
 }
 
 /**
- * Value types.
+ * Expression types.
  */
-export type Value
-    = List
+export type Expression
+    = FunctionCall
+    | ModuleMember
+    | List
     | Dict
     | Literal
-    | Identifier
+    | CandidateIdentifier
     ;
+
+/**
+ * FunctionCall node.
+ */
+export class FunctionCall implements Node {
+
+    type = 'function-call';
+
+    constructor(
+        public value: CandidateIdentifier,
+        public args: Expression[],
+        public location: Location) { }
+
+}
+
+/**
+ * ModuleMember node.
+ */
+export class ModuleMember implements Node {
+
+    type = 'module-member';
+
+    constructor(
+        public module: string,
+        public member: Identifier,
+        public location: Location) { }
+
+}
 
 /**
  * List node.
@@ -228,7 +205,7 @@ export class List implements Node {
     type = 'list';
 
     constructor(
-        public elements: Value[],
+        public elements: Expression[],
         public location: Location) { }
 
 }
@@ -254,8 +231,8 @@ export class Pair implements Node {
     type = 'pair';
 
     constructor(
-        public key: Identifier,
-        public value: Value,
+        public key: CandidateIdentifier,
+        public value: Expression,
         public location: Location) { }
 
 }
@@ -316,17 +293,17 @@ export class EnvVar implements Node {
     type = 'envvar';
 
     constructor(
-        public key: Identifier,
+        public key: CandidateIdentifier,
         public location: Location) { }
 
 }
 
 /**
- * Identifier type.
+ * CandidateIdentifier type.
  */
-export type Identifier
+export type CandidateIdentifier
     = QualifiedIdentifier
-    | UnqualifiedIdentifier
+    | Identifier
     ;
 
 /**
@@ -337,17 +314,17 @@ export class QualifiedIdentifier implements Node {
     type = 'qualified-identifier';
 
     constructor(
-        public path: UnqualifiedIdentifier[],
+        public path: Identifier[],
         public location: Location) { }
 
 }
 
 /**
- * UnqualifiedIdentifier node.
+ * Identifier node.
  */
-export class UnqualifiedIdentifier implements Node {
+export class Identifier implements Node {
 
-    type = 'unqualified-identifier';
+    type = 'identifier';
 
     constructor(
         public value: string,

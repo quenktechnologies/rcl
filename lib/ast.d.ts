@@ -33,13 +33,15 @@ export interface Node {
  * File node.
  */
 export declare class File implements Node {
-    includes: Include[];
-    imports: Import[];
-    routes: Routes[];
+    body: FileBody[];
     location: Location;
     type: string;
-    constructor(includes: Include[], imports: Import[], routes: Routes[], location: Location);
+    constructor(body: FileBody[], location: Location);
 }
+/**
+ * FileBody are nodes that occur in the body of the file.
+ */
+export declare type FileBody = Include | Comment | Set | Route;
 /**
  * Include node.
  */
@@ -50,34 +52,6 @@ export declare class Include implements Node {
     constructor(path: StringLiteral, location: Location);
 }
 /**
- * Import types.
- */
-export declare type Import = MemberImport | QualifiedImport;
-/**
- * MemberImport node.
- */
-export declare class MemberImport implements Node {
-    members: UnqualifiedIdentifier[];
-    module: StringLiteral;
-    location: Location;
-    type: string;
-    constructor(members: UnqualifiedIdentifier[], module: StringLiteral, location: Location);
-}
-/**
- * QualifiedImport node.
- */
-export declare class QualifiedImport implements Node {
-    module: StringLiteral;
-    id: UnqualifiedIdentifier;
-    location: Location;
-    type: string;
-    constructor(module: StringLiteral, id: UnqualifiedIdentifier, location: Location);
-}
-/**
- * Routes type.
- */
-export declare type Routes = Comment | Route;
-/**
  * Comment node
  */
 export declare class Comment implements Node {
@@ -86,17 +60,24 @@ export declare class Comment implements Node {
     type: string;
     constructor(value: string, location: Location);
 }
+export declare class Set implements Node {
+    id: Identifier;
+    value: Expression;
+    location: Location;
+    type: string;
+    constructor(id: Identifier, value: Expression, location: Location);
+}
 /**
  * Route node.
  */
 export declare class Route implements Node {
     method: Method;
     pattern: Pattern;
-    filters: FilterExpression[];
+    filters: Filter[];
     view: View;
     location: Location;
     type: string;
-    constructor(method: Method, pattern: Pattern, filters: FilterExpression[], view: View, location: Location);
+    constructor(method: Method, pattern: Pattern, filters: Filter[], view: View, location: Location);
 }
 /**
  * Method (http) supported.
@@ -112,29 +93,9 @@ export declare class Pattern implements Node {
     constructor(value: string, location: Location);
 }
 /**
- * FilterExpression
- */
-export declare type FilterExpression = Filter | Spread;
-/**
  * Filter node.
  */
-export declare class Filter implements Node {
-    value: Identifier;
-    args: Value[];
-    invoked: boolean;
-    location: Location;
-    type: string;
-    constructor(value: Identifier, args: Value[], invoked: boolean, location: Location);
-}
-/**
- * Spread node.
- */
-export declare class Spread implements Node {
-    filter: Filter;
-    location: Location;
-    type: string;
-    constructor(filter: Filter, location: Location);
-}
+export declare type Filter = CandidateIdentifier | ModuleMember | FunctionCall;
 /**
  * View node.
  */
@@ -146,17 +107,37 @@ export declare class View implements Node {
     constructor(view: StringLiteral, context: Dict | null, location: Location);
 }
 /**
- * Value types.
+ * Expression types.
  */
-export declare type Value = List | Dict | Literal | Identifier;
+export declare type Expression = FunctionCall | ModuleMember | List | Dict | Literal | CandidateIdentifier;
+/**
+ * FunctionCall node.
+ */
+export declare class FunctionCall implements Node {
+    value: CandidateIdentifier;
+    args: Expression[];
+    location: Location;
+    type: string;
+    constructor(value: CandidateIdentifier, args: Expression[], location: Location);
+}
+/**
+ * ModuleMember node.
+ */
+export declare class ModuleMember implements Node {
+    module: string;
+    member: Identifier;
+    location: Location;
+    type: string;
+    constructor(module: string, member: Identifier, location: Location);
+}
 /**
  * List node.
  */
 export declare class List implements Node {
-    elements: Value[];
+    elements: Expression[];
     location: Location;
     type: string;
-    constructor(elements: Value[], location: Location);
+    constructor(elements: Expression[], location: Location);
 }
 /**
  * Dict node.
@@ -171,11 +152,11 @@ export declare class Dict implements Node {
  * Pair node.
  */
 export declare class Pair implements Node {
-    key: Identifier;
-    value: Value;
+    key: CandidateIdentifier;
+    value: Expression;
     location: Location;
     type: string;
-    constructor(key: Identifier, value: Value, location: Location);
+    constructor(key: CandidateIdentifier, value: Expression, location: Location);
 }
 /**
  * Literal types.
@@ -212,28 +193,28 @@ export declare class BooleanLiteral implements Node {
  * EnvVar node.
  */
 export declare class EnvVar implements Node {
-    key: Identifier;
+    key: CandidateIdentifier;
     location: Location;
     type: string;
-    constructor(key: Identifier, location: Location);
+    constructor(key: CandidateIdentifier, location: Location);
 }
 /**
- * Identifier type.
+ * CandidateIdentifier type.
  */
-export declare type Identifier = QualifiedIdentifier | UnqualifiedIdentifier;
+export declare type CandidateIdentifier = QualifiedIdentifier | Identifier;
 /**
  * QualifiedIdentifier node.
  */
 export declare class QualifiedIdentifier implements Node {
-    path: UnqualifiedIdentifier[];
+    path: Identifier[];
     location: Location;
     type: string;
-    constructor(path: UnqualifiedIdentifier[], location: Location);
+    constructor(path: Identifier[], location: Location);
 }
 /**
- * UnqualifiedIdentifier node.
+ * Identifier node.
  */
-export declare class UnqualifiedIdentifier implements Node {
+export declare class Identifier implements Node {
     value: string;
     location: Location;
     type: string;
