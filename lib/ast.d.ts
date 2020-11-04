@@ -114,11 +114,11 @@ export declare type Expression = FunctionCall | ModuleMember | List | Dict | Lit
  * FunctionCall node.
  */
 export declare class FunctionCall implements Node {
-    value: AnyIdentifier;
+    id: AnyIdentifier | ModuleMember;
     args: Expression[];
     location: Location;
     type: string;
-    constructor(value: AnyIdentifier, args: Expression[], location: Location);
+    constructor(id: AnyIdentifier | ModuleMember, args: Expression[], location: Location);
 }
 /**
  * ModuleMember node.

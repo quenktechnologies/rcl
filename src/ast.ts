@@ -177,7 +177,7 @@ export class FunctionCall implements Node {
     type = 'function-call';
 
     constructor(
-        public value: AnyIdentifier,
+        public id: AnyIdentifier|ModuleMember,
         public args: Expression[],
         public location: Location) { }
 
