@@ -68,6 +68,10 @@ export declare class Set implements Node {
     constructor(id: Identifier, value: Expression, location: Location);
 }
 /**
+ * Filter node.
+ */
+export declare type Filter = AnyIdentifier | ModuleMember | FunctionCall;
+/**
  * Route node.
  */
 export declare class Route implements Node {
@@ -93,10 +97,6 @@ export declare class Pattern implements Node {
     constructor(value: string, location: Location);
 }
 /**
- * Filter node.
- */
-export declare type Filter = CandidateIdentifier | ModuleMember | FunctionCall;
-/**
  * View node.
  */
 export declare class View implements Node {
@@ -109,16 +109,16 @@ export declare class View implements Node {
 /**
  * Expression types.
  */
-export declare type Expression = FunctionCall | ModuleMember | List | Dict | Literal | CandidateIdentifier;
+export declare type Expression = FunctionCall | ModuleMember | List | Dict | Literal | AnyIdentifier;
 /**
  * FunctionCall node.
  */
 export declare class FunctionCall implements Node {
-    value: CandidateIdentifier;
+    value: AnyIdentifier;
     args: Expression[];
     location: Location;
     type: string;
-    constructor(value: CandidateIdentifier, args: Expression[], location: Location);
+    constructor(value: AnyIdentifier, args: Expression[], location: Location);
 }
 /**
  * ModuleMember node.
@@ -152,11 +152,11 @@ export declare class Dict implements Node {
  * Pair node.
  */
 export declare class Pair implements Node {
-    key: CandidateIdentifier;
+    key: AnyIdentifier;
     value: Expression;
     location: Location;
     type: string;
-    constructor(key: CandidateIdentifier, value: Expression, location: Location);
+    constructor(key: AnyIdentifier, value: Expression, location: Location);
 }
 /**
  * Literal types.
@@ -193,15 +193,15 @@ export declare class BooleanLiteral implements Node {
  * EnvVar node.
  */
 export declare class EnvVar implements Node {
-    key: CandidateIdentifier;
+    key: AnyIdentifier;
     location: Location;
     type: string;
-    constructor(key: CandidateIdentifier, location: Location);
+    constructor(key: AnyIdentifier, location: Location);
 }
 /**
- * CandidateIdentifier type.
+ * AnyIdentifier type.
  */
-export declare type CandidateIdentifier = QualifiedIdentifier | Identifier;
+export declare type AnyIdentifier = QualifiedIdentifier | Identifier;
 /**
  * QualifiedIdentifier node.
  */

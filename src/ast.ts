@@ -97,6 +97,15 @@ export class Set implements Node {
 }
 
 /**
+ * Filter node.
+ */
+export type Filter
+    = AnyIdentifier
+    | ModuleMember
+    | FunctionCall
+    ;
+
+/**
  * Route node.
  */
 export class Route implements Node {
@@ -135,15 +144,6 @@ export class Pattern implements Node {
 }
 
 /**
- * Filter node.
- */
-export type Filter
-    = CandidateIdentifier
-    | ModuleMember
-    | FunctionCall
-    ;
-
-/**
  * View node.
  */
 export class View implements Node {
@@ -166,7 +166,7 @@ export type Expression
     | List
     | Dict
     | Literal
-    | CandidateIdentifier
+    | AnyIdentifier
     ;
 
 /**
@@ -177,7 +177,7 @@ export class FunctionCall implements Node {
     type = 'function-call';
 
     constructor(
-        public value: CandidateIdentifier,
+        public value: AnyIdentifier,
         public args: Expression[],
         public location: Location) { }
 
@@ -231,7 +231,7 @@ export class Pair implements Node {
     type = 'pair';
 
     constructor(
-        public key: CandidateIdentifier,
+        public key: AnyIdentifier,
         public value: Expression,
         public location: Location) { }
 
@@ -293,15 +293,15 @@ export class EnvVar implements Node {
     type = 'envvar';
 
     constructor(
-        public key: CandidateIdentifier,
+        public key: AnyIdentifier,
         public location: Location) { }
 
 }
 
 /**
- * CandidateIdentifier type.
+ * AnyIdentifier type.
  */
-export type CandidateIdentifier
+export type AnyIdentifier
     = QualifiedIdentifier
     | Identifier
     ;

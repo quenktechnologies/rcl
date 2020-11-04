@@ -149,7 +149,7 @@ pattern
           ;
 
 filters
-          : candidate_identifier
+          : any_identifier
             {$$ = [$1];}
 
           | module_member
@@ -158,7 +158,7 @@ filters
           | function_call
             {$$ = [$1];}
 
-          | filters candidate_identifier
+          | filters any_identifier
             {$$ = $1.concat($2);}
 
           | filters module_member
@@ -193,15 +193,15 @@ expression
 
           | envvar {$$ = $1;}
 
-          | candidate_identifier {$$ = $1;}
+          | any_identifier {$$ = $1;}
           ;
 
 function_call
 
-          : candidate_identifier '(' ')' 
+          : any_identifier '(' ')' 
             {$$ = new yy.ast.FunctionCall($1, [], @$); }
 
-          | candidate_identifier '(' arguments ')'
+          | any_identifier '(' arguments ')'
             {$$ = new yy.ast.FunctionCall($1, $3, @$); }
 
           | module_member '(' ')' 
@@ -259,7 +259,7 @@ pairs
           ;
 
 pair
-          : candidate_identifier '=' expression
+          : any_identifier '=' expression
             {$$ = new yy.ast.Pair($1, $3, @$);}
           ;
 
@@ -286,7 +286,7 @@ envvar
              {$$ = new yy.ast.EnvVar($2, @$);  }
           ;
 
-candidate_identifier
+any_identifier
           : identifier
             {$$ = $1;}
 
