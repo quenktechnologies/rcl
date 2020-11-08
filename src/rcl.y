@@ -218,7 +218,7 @@ arguments
 
 module_member
           : module_path '#' identifier
-            {$$ = yy.ast.ModuleMember($1, $3, @$);}
+            {$$ = new yy.ast.ModuleMember($1, $3, @$);}
           ;
 
 module_path
