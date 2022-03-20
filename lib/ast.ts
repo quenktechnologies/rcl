@@ -117,6 +117,7 @@ export class Route implements Node {
         public pattern: Pattern,
         public filters: Filter[],
         public view: View,
+      public tags: Tag[],
         public location: Location) { }
 
 }
@@ -158,6 +159,20 @@ export class View implements Node {
 }
 
 /**
+ * Tag node.
+ */
+export class Tag implements Node {
+
+    type = 'tag';
+
+    constructor(
+        public name: Identifier,
+        public value: Expression,
+        public location: Location) { }
+
+}
+
+/**
  * Expression types.
  */
 export type Expression
@@ -177,7 +192,7 @@ export class FunctionCall implements Node {
     type = 'function-call';
 
     constructor(
-        public id: AnyIdentifier|ModuleMember,
+        public id: AnyIdentifier | ModuleMember,
         public args: Expression[],
         public location: Location) { }
 

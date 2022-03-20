@@ -1,6 +1,6 @@
 import * as must from 'must';
 import * as fs from 'fs';
-import { parse, tree } from '../src';
+import { parse, tree } from '../lib';
 
 var tests = null;
 
@@ -93,6 +93,12 @@ GET /random refresh "main/random" {pool = [1,2,3]}
 DELETE /users/:id refresh check(["admin", "remove"]) users.delete
 
 GET / "main/index" {name = "Nikosi"}`,
+
+  'should support positive tags': 'GET / main +admin',
+
+  'should support set tags': 'GET / main +admin="peter"',
+
+  'should support negative tags': 'GET / main -admin'
 
 };
 

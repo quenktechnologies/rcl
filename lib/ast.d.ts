@@ -79,9 +79,10 @@ export declare class Route implements Node {
     pattern: Pattern;
     filters: Filter[];
     view: View;
+    tags: Tag[];
     location: Location;
     type: string;
-    constructor(method: Method, pattern: Pattern, filters: Filter[], view: View, location: Location);
+    constructor(method: Method, pattern: Pattern, filters: Filter[], view: View, tags: Tag[], location: Location);
 }
 /**
  * Method (http) supported.
@@ -105,6 +106,16 @@ export declare class View implements Node {
     location: Location;
     type: string;
     constructor(view: StringLiteral, context: Dict | null, location: Location);
+}
+/**
+ * Tag node.
+ */
+export declare class Tag implements Node {
+    name: Identifier;
+    value: Expression;
+    location: Location;
+    type: string;
+    constructor(name: Identifier, value: Expression, location: Location);
 }
 /**
  * Expression types.

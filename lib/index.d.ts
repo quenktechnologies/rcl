@@ -12,4 +12,4 @@ export declare const tree: Nodes;
 /**
  * parse source text into an abstract syntax tree.
  */
-export declare const parse: (str: string, ast: Nodes) => Either<Error, Node>;
+export declare const parse: (str: string, ast: Nodes) => Result;

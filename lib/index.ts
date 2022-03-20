@@ -11,8 +11,9 @@ import {
     Route,
     Pattern,
     View,
+  Tag,
     EnvVar,
-  FunctionCall,
+    FunctionCall,
     ModuleMember,
     List,
     Dict,
@@ -33,9 +34,9 @@ export type Result = Either<Error, Node>;
  * tree is a map of reference nodes that can be used during parsing.
  */
 export const tree: Nodes = {
-    File, Include, Comment, Set, Route, Pattern, View, ModuleMember,
-    EnvVar, FunctionCall, List, Dict, Pair, StringLiteral, NumberLiteral, 
-    BooleanLiteral,    QualifiedIdentifier, Identifier
+    File, Include, Comment, Set, Route, Pattern, View, Tag,ModuleMember,
+    EnvVar, FunctionCall, List, Dict, Pair, StringLiteral, NumberLiteral,
+    BooleanLiteral, QualifiedIdentifier, Identifier
 }
 
 /**
@@ -51,7 +52,7 @@ export const parse = (str: string, ast: Nodes): Result => {
 
     } catch (e) {
 
-        return left(e);
+        return <Result>left(e);
 
     }
 
