@@ -180,7 +180,7 @@ view
 
 tags
           : tag
-           {$$ = $1; }
+           {$$ = [$1]; }
 
           | tags tag
            {$$ = $1.concat($2); }
