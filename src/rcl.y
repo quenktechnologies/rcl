@@ -65,6 +65,8 @@ Characters [^\n]*
 '='                                                      return '=';
 ','                                                      return ',';
 '.'                                                      return '.';
+'+'                                                      return '+';
+'-'                                                      return '-';
 '{'                                                      return '{';
 '}'                                                      return '}';
 '/'                                                      return '/';
@@ -128,14 +130,14 @@ comment
           ;
 
 route
-          : method pattern filters view
-            {$$ = new yy.ast.Route($1, $2, $3, $4, @$);} 
+          : method pattern filters view tags?
+            {$$ = new yy.ast.Route($1, $2, $3, $4, $5||[], @$);} 
 
-          | method pattern filters 
-            {$$ = new yy.ast.Route($1, $2, $3, null, @$);} 
+          | method pattern filters tags?
+            {$$ = new yy.ast.Route($1, $2, $3, null, $4||[], @$);} 
 
-          | method pattern view
-            {$$ = new yy.ast.Route($1, $2, [], $3, @$);} 
+          | method pattern view tags?
+            {$$ = new yy.ast.Route($1, $2, [], $3, $4||[], @$);} 
           ;
 
 method
@@ -174,6 +176,25 @@ view
 
           | string_literal
             {$$ = new yy.ast.View($1, new yy.ast.Dict([], @$), @$); }
+          ;
+
+tags
+          : tag
+           {$$ = $1; }
+
+          | tags tag
+           {$$ = $1.concat($2); }
+          ;
+
+tag 
+          : '+' identifier 
+           {$$ = new yy.ast.Tag($2, new yy.ast.BooleanLiteral(true, @$), @$); }
+
+          | '+' identifier '=' expression
+           {$$ = new yy.ast.Tag($2, $4, @$);}
+
+          | '-' identifier
+           {$$ = new yy.ast.Tag($2, new yy.ast.BooleanLiteral(true, @$), @$); }
           ;
 
 expression
