@@ -46,6 +46,9 @@ Characters [^\n]*
 'PUT'                                                    return 'PUT';
 'DELETE'                                                 return 'DELETE';
 'HEAD'                                                   return 'HEAD';
+'OPTIONS'                                                return 'OPTIONS';
+'TRACE'                                                  return 'TRACE';
+'CONNECT'                                                return 'CONNECT';
 'include'                                                return 'INCLUDE';
 'set'                                                    return 'SET';
 {NumberLiteral}                                          return 'NUMBER_LITERAL';
@@ -141,7 +144,7 @@ route
           ;
 
 method
-          : GET | PATCH | POST | PUT | DELETE | HEAD
+          : GET | PATCH | POST | PUT | DELETE | HEAD | OPTIONS | TRACE | CONNECT 
             {$$ = $1;}
           ;
 

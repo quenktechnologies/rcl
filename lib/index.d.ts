@@ -4,7 +4,7 @@ import { Nodes, Node } from './ast';
 /**
  * Result of attempting to parse a source text.
  */
-export declare type Result = Either<Error, Node>;
+export type Result = Either<Error, Node>;
 /**
  * tree is a map of reference nodes that can be used during parsing.
  */

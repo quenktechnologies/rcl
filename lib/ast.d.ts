@@ -41,7 +41,7 @@ export declare class File implements Node {
 /**
  * FileBody are nodes that occur in the body of the file.
  */
-export declare type FileBody = Include | Comment | Set | Route;
+export type FileBody = Include | Comment | Set | Route;
 /**
  * Include node.
  */
@@ -70,7 +70,7 @@ export declare class Set implements Node {
 /**
  * Filter node.
  */
-export declare type Filter = AnyIdentifier | ModuleMember | FunctionCall;
+export type Filter = AnyIdentifier | ModuleMember | FunctionCall;
 /**
  * Route node.
  */
@@ -87,7 +87,7 @@ export declare class Route implements Node {
 /**
  * Method (http) supported.
  */
-export declare type Method = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
+export type Method = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
 /**
  * Pattern node.
  */
@@ -120,7 +120,7 @@ export declare class Tag implements Node {
 /**
  * Expression types.
  */
-export declare type Expression = FunctionCall | ModuleMember | List | Dict | Literal | AnyIdentifier;
+export type Expression = FunctionCall | ModuleMember | List | Dict | Literal | AnyIdentifier;
 /**
  * FunctionCall node.
  */
@@ -172,7 +172,7 @@ export declare class Pair implements Node {
 /**
  * Literal types.
  */
-export declare type Literal = StringLiteral | NumberLiteral | BooleanLiteral;
+export type Literal = StringLiteral | NumberLiteral | BooleanLiteral;
 /**
  * StringLiteral node.
  */
@@ -212,7 +212,7 @@ export declare class EnvVar implements Node {
 /**
  * AnyIdentifier type.
  */
-export declare type AnyIdentifier = QualifiedIdentifier | Identifier;
+export type AnyIdentifier = QualifiedIdentifier | Identifier;
 /**
  * QualifiedIdentifier node.
  */
