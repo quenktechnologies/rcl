@@ -197,7 +197,7 @@ tag
            {$$ = new yy.ast.Tag($2, $4, @$);}
 
           | '-' identifier
-           {$$ = new yy.ast.Tag($2, new yy.ast.BooleanLiteral(true, @$), @$); }
+           {$$ = new yy.ast.Tag($2, new yy.ast.BooleanLiteral(false, @$), @$); }
           ;
 
 expression
